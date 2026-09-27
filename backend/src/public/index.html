@@ -13,36 +13,69 @@
     section { background: white; border: 1px solid #d5deea; border-radius: 8px; padding: 1rem 1.1rem; }
     h2 { margin: 0 0 0.75rem; font-size: 1.05rem; color: #003366; }
     .level { font-size: 2.5rem; margin: 0; }
+    .sub { margin: 0.2rem 0 0; font-family: system-ui, sans-serif; color: #5c6b7a; }
     .bar { height: 18px; background: #e6eef6; border-radius: 99px; overflow: hidden; margin-top: 0.6rem; }
     .bar span { display: block; height: 100%; background: #003366; width: 0; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-family: system-ui, sans-serif; }
+    .banner { margin: 0.8rem 0 0; padding: 0.65rem 0.75rem; border-radius: 6px; font-family: system-ui, sans-serif; background: #fff6e5; color: #8a5a00; }
+    .banner.bad { background: #fdecec; color: #8d1d1d; }
+    .banner.ok { background: #e8f6ee; color: #1d6b3a; }
+    .controls { display: flex; gap: 0.5rem; margin-top: 0.85rem; }
+    button { font-family: system-ui, sans-serif; border: 0; border-radius: 6px; padding: 0.45rem 0.9rem; background: #003366; color: white; cursor: pointer; }
+    button.quiet { background: #e6eef6; color: #003366; }
+    button:disabled { opacity: 0.55; cursor: default; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; font-family: system-ui, sans-serif; }
     .grid strong { display: block; font-size: 1.1rem; }
     .grid span { color: #5c6b7a; font-size: 0.8rem; }
+    .history { display: flex; align-items: flex-end; gap: 3px; height: 72px; margin-top: 0.4rem; }
+    .history i { display: block; flex: 1; background: #003366; border-radius: 2px 2px 0 0; min-height: 2px; }
     ul { list-style: none; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    li { padding: 0.45rem 0; border-top: 1px solid #e6eef6; }
+    li { padding: 0.45rem 0; border-top: 1px solid #e6eef6; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
     .warn { color: #8a5a00; }
     .bad { color: #8d1d1d; }
     .ok { color: #1d6b3a; }
-    #status { font-family: system-ui, sans-serif; font-size: 0.85rem; color: #5c6b7a; }
+    #action, #status { font-family: system-ui, sans-serif; font-size: 0.85rem; color: #5c6b7a; margin: 0; }
   </style>
 </head>
 <body>
   <header>
     <h1>Roof tank</h1>
-    <p>home_001 · tank_roof_01 · warning 90% · pump off at 98%</p>
+    <p>home_001 · tank_roof_01 · notice at 90% · you can stop the pump · automatic off at 98%</p>
   </header>
   <main>
     <section>
-      <h2>Tank level</h2>
-      <p class="level" id="level">--%</p>
+      <h2>Tank</h2>
+      <p class="level" id="litres">-- L</p>
+      <p class="sub" id="level">--%</p>
       <div class="bar"><span id="bar"></span></div>
+      <p class="sub" id="eta"></p>
+      <p class="banner" id="banner" hidden></p>
     </section>
     <section>
       <div class="grid">
         <div><span>Pump</span><strong id="pump">--</strong></div>
         <div><span>Flow</span><strong id="flow">--</strong></div>
         <div><span>Inlet water</span><strong id="source">--</strong></div>
+        <div><span>Pump runtime</span><strong id="runtime">--</strong></div>
+        <div><span>Total flow</span><strong id="cumulative">--</strong></div>
+        <div><span>Litres saved</span><strong id="saved">--</strong></div>
       </div>
+      <div class="controls">
+        <button type="button" id="off">Off</button>
+        <button type="button" id="on" class="quiet">On</button>
+      </div>
+      <p id="action"></p>
+    </section>
+    <section>
+      <h2>Recent level</h2>
+      <div class="history" id="history"></div>
+    </section>
+    <section>
+      <h2>Totals</h2>
+      <p class="sub" id="totals">Waiting for totals…</p>
+    </section>
+    <section>
+      <h2>Notifications</h2>
+      <ul id="notifications"></ul>
     </section>
     <section>
       <h2>Recent incidents</h2>
@@ -51,38 +84,176 @@
     <p id="status">Waiting for the API…</p>
   </main>
   <script>
+    const litresEl = document.getElementById("litres");
     const levelEl = document.getElementById("level");
     const barEl = document.getElementById("bar");
+    const etaEl = document.getElementById("eta");
+    const bannerEl = document.getElementById("banner");
     const pumpEl = document.getElementById("pump");
     const flowEl = document.getElementById("flow");
     const sourceEl = document.getElementById("source");
+    const runtimeEl = document.getElementById("runtime");
+    const cumulativeEl = document.getElementById("cumulative");
+    const savedEl = document.getElementById("saved");
+    const historyEl = document.getElementById("history");
+    const totalsEl = document.getElementById("totals");
     const listEl = document.getElementById("incidents");
+    const notesEl = document.getElementById("notifications");
     const statusEl = document.getElementById("status");
+    const actionEl = document.getElementById("action");
+    const offBtn = document.getElementById("off");
+    const onBtn = document.getElementById("on");
+    let busy = false;
 
     function cssClass(severity) {
-      if (severity === "warning") return "warn";
+      if (severity === "warning" || severity === "low_water") return "warn";
       if (severity === "overflow_prevented" || severity === "dry_run" || severity === "confirmed_fault" || severity === "pump_failure" || severity === "abnormal_flow") return "bad";
       return "ok";
     }
 
+    function showNumber(value, suffix) {
+      return value === null || value === undefined ? "--" : `${value}${suffix}`;
+    }
+
+    function setBanner(level, pump) {
+      bannerEl.className = "banner";
+      if (pump === "on" && level >= 98) {
+        bannerEl.hidden = false;
+        bannerEl.classList.add("bad");
+        bannerEl.textContent = "The automatic cutoff is due. The pump stops at 98%.";
+        return;
+      }
+      if (pump === "on" && level >= 90) {
+        bannerEl.hidden = false;
+        bannerEl.textContent = "You were notified. Turn the pump off now, or it stops itself at 98%.";
+        return;
+      }
+      if (pump === "off") {
+        bannerEl.hidden = false;
+        bannerEl.classList.add("ok");
+        bannerEl.textContent = "The pump is off.";
+        return;
+      }
+      bannerEl.hidden = true;
+      bannerEl.textContent = "";
+    }
+
+    async function sendCommand(command) {
+      if (busy) return;
+      busy = true;
+      offBtn.disabled = true;
+      onBtn.disabled = true;
+      actionEl.textContent = command === "off" ? "Switching the pump off…" : "Switching the pump on…";
+      try {
+        const response = await fetch("/api/motors/motor_roof_01/override", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          throw new Error(body.error || "The pump command was not sent.");
+        }
+        actionEl.textContent = command === "off" ? "Pump off command sent." : "Pump on command sent.";
+        await refresh();
+      } catch (error) {
+        actionEl.textContent = error.message;
+      } finally {
+        busy = false;
+        offBtn.disabled = false;
+        onBtn.disabled = false;
+      }
+    }
+
+    async function acknowledge(incidentId, button) {
+      button.disabled = true;
+      const response = await fetch(`/api/incidents/${incidentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acknowledged: true }),
+      });
+      if (!response.ok) {
+        button.disabled = false;
+        actionEl.textContent = "Could not acknowledge that incident.";
+        return;
+      }
+      await refresh();
+    }
+
     async function refresh() {
-      const [health, tank, incidents] = await Promise.all([
+      const [health, tank, incidents, notifications, history, stats] = await Promise.all([
         fetch("/api/health").then((r) => r.json()),
         fetch("/api/tanks/tank_roof_01").then((r) => r.json()),
         fetch("/api/incidents?tankId=tank_roof_01").then((r) => r.json()),
+        fetch("/api/notifications?homeId=home_001").then((r) => r.json()),
+        fetch("/api/telemetry?deviceId=tank_level_roof_01&limit=30").then((r) => r.json()),
+        fetch("/api/incidents/stats").then((r) => r.json()),
       ]);
-      const level = tank.current?.level_pct;
-      levelEl.textContent = level === null || level === undefined ? "--%" : `${level}%`;
+      const current = tank.current || {};
+      const level = current.level_pct;
+      litresEl.textContent = showNumber(current.litres_in_tank, " L");
+      levelEl.textContent = level === null || level === undefined ? "--%" : `${level}% full`;
       barEl.style.width = `${level || 0}%`;
-      pumpEl.textContent = tank.current?.pump_state || "--";
-      flowEl.textContent = tank.current?.flow_rate_lpm === null || tank.current?.flow_rate_lpm === undefined ? "--" : `${tank.current.flow_rate_lpm} L/min`;
-      sourceEl.textContent = tank.current?.water_present === null || tank.current?.water_present === undefined ? "--" : tank.current.water_present ? "present" : "absent";
+      etaEl.textContent = current.minutes_to_cutoff === null || current.minutes_to_cutoff === undefined
+        ? ""
+        : `${current.minutes_to_cutoff} min until the 98% cutoff · ${current.litres_to_cutoff} L still to fill`;
+      setBanner(Number(level), current.pump_state);
+      pumpEl.textContent = current.pump_state || "--";
+      flowEl.textContent = showNumber(current.flow_rate_lpm, " L/min");
+      sourceEl.textContent = current.water_present === null || current.water_present === undefined ? "--" : current.water_present ? "present" : "absent";
+      runtimeEl.textContent = showNumber(current.runtime_seconds, " s");
+      cumulativeEl.textContent = showNumber(current.cumulative_litres, " L");
+      savedEl.textContent = showNumber(stats.litres_saved, " L");
+
+      historyEl.innerHTML = "";
+      const points = [...history].reverse();
+      if (!points.length) {
+        historyEl.textContent = "No level history yet.";
+      }
+      for (const point of points) {
+        const bar = document.createElement("i");
+        const pct = Number(point.reading?.level_pct) || 0;
+        bar.style.height = `${Math.max(pct, 2)}%`;
+        bar.title = `${pct}%`;
+        historyEl.appendChild(bar);
+      }
+
+      const counts = (stats.by_severity || []).map((row) => `${row._id} ${row.count}`).join(" · ");
+      const seconds = stats.avg_detection_to_cutoff_seconds;
+      const cutoffText = seconds === null || seconds === undefined ? "no cutoff timed yet" : `average cutoff ${Number(seconds).toFixed(2)} s`;
+      totalsEl.textContent = counts ? `${counts} · ${cutoffText}` : cutoffText;
+
+      notesEl.innerHTML = "";
+      for (const note of notifications.slice(0, 6)) {
+        const item = document.createElement("li");
+        item.className = cssClass(note.severity);
+        const mark = note.channel === "telegram" && note.delivered ? "sent on Telegram" : "on this page";
+        item.textContent = `${new Date(note.created_at).toLocaleTimeString()} · ${note.message} · ${mark}`;
+        notesEl.appendChild(item);
+      }
+      if (!notifications.length) {
+        const item = document.createElement("li");
+        item.textContent = "No notifications yet.";
+        notesEl.appendChild(item);
+      }
+
       listEl.innerHTML = "";
       for (const incident of incidents.slice(0, 8)) {
         const item = document.createElement("li");
         item.className = cssClass(incident.severity);
         const when = new Date(incident.triggered_at).toLocaleTimeString();
-        item.textContent = `${when} · ${incident.severity} · ${incident.action_taken?.status || "logged"}`;
+        const label = document.createElement("span");
+        const ack = incident.acknowledged_at ? " · acknowledged" : "";
+        label.textContent = `${when} · ${incident.severity} · ${incident.action_taken?.status || "logged"}${ack}`;
+        item.appendChild(label);
+        if (incident.open && !incident.acknowledged_at) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "quiet";
+          button.textContent = "Acknowledge";
+          button.addEventListener("click", () => acknowledge(incident.incident_id, button));
+          item.appendChild(button);
+        }
         listEl.appendChild(item);
       }
       if (!incidents.length) {
@@ -90,13 +261,16 @@
         item.textContent = "No incidents yet.";
         listEl.appendChild(item);
       }
-      statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt}`;
+      statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt} · Telegram ${health.telegram}`;
     }
 
+    offBtn.addEventListener("click", () => sendCommand("off"));
+    onBtn.addEventListener("click", () => sendCommand("on"));
     refresh().catch((error) => {
       statusEl.textContent = error.message;
     });
     setInterval(() => {
+      if (busy) return;
       refresh().catch((error) => {
         statusEl.textContent = error.message;
       });

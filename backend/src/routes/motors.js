@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { commandTopic } from "../constants.js";
 import { isMqttConnected, publish } from "../mqtt.js";
-import { Device, Incident } from "../models/index.js";
+import { Device, DeviceLatest, Incident } from "../models/index.js";
+import { notify } from "../services/notificationService.js";
 import { asyncHandler, httpError } from "../middleware/errorHandler.js";
 
 const router = Router();
@@ -40,7 +41,7 @@ router.post(
       await incident.save({ writeConcern: { w: "majority" } });
       throw httpError(503, "MQTT broker is not connected");
     }
-    publish(
+    const sent = publish(
       commandTopic({
         home_id: device.home_id,
         tank_id: device.tank_id,
@@ -49,7 +50,14 @@ router.post(
       { command, reason: "manual_override", incident_id: incident.incident_id },
       { qos: 1 }
     );
+    if (!sent) {
+      incident.action_taken.status = "mqtt_unavailable";
+      await incident.save({ writeConcern: { w: "majority" } });
+      throw httpError(503, "MQTT broker is not connected");
+    }
     await incident.save({ writeConcern: { w: "majority" } });
+    const latests = await DeviceLatest.find({ tank_id: device.tank_id }).lean();
+    await notify(incident.toObject(), latests);
     res.status(201).json(incident);
   })
 );

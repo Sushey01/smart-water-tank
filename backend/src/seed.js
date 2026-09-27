@@ -61,6 +61,17 @@ const rules = [
     action: { type: "none" },
   },
   {
+    rule_id: "rule_low_water_roof",
+    name: "Notice when the tank is low",
+    severity: "low_water",
+    kind: "threshold",
+    conditions: [
+      { device_type: "tank_level", field: "level_pct", operator: "<=", value: 15 },
+      { device_type: "motor_state", field: "state", operator: "==", value: "off" },
+    ],
+    action: { type: "none" },
+  },
+  {
     rule_id: "rule_abnormal_flow_roof",
     name: "Flow while the pump is off",
     severity: "abnormal_flow",

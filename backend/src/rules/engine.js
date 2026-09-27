@@ -1,9 +1,9 @@
 import { Incident, Rule, Tank } from "../models/index.js";
 import { DeviceLatest } from "../models/index.js";
-import { escalateStale, openIncident, resolvePending } from "./actions.js";
+import { escalateStale, openIncident, resolveLowWater, resolvePending } from "./actions.js";
 import { compare, isPumpFailure, latestField, readingsAreCurrent, withTankThresholds } from "./conditions.js";
 
-const SEVERITY_ORDER = ["overflow_prevented", "dry_run", "pump_failure", "abnormal_flow", "warning"];
+const SEVERITY_ORDER = ["overflow_prevented", "dry_run", "pump_failure", "abnormal_flow", "warning", "low_water"];
 
 async function matches(rule, latests, tank) {
   const conditions = withTankThresholds(rule, tank);
@@ -42,6 +42,7 @@ export async function evaluate(tankId) {
   }
   const latests = await DeviceLatest.find({ tank_id: tankId }).lean();
   await resolvePending(tankId, latests);
+  await resolveLowWater(tankId, latests);
   await escalateStale(tankId, latests);
 
   const rules = await Rule.find({ tank_id: tankId, enabled: true }).lean();

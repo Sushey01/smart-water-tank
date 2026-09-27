@@ -2,6 +2,7 @@ import { commandTopic } from "../constants.js";
 import { publish } from "../mqtt.js";
 import { latestField } from "./conditions.js";
 import { Incident } from "../models/index.js";
+import { notify } from "../services/notificationService.js";
 
 const MAJORITY = { writeConcern: { w: "majority" } };
 
@@ -51,6 +52,7 @@ export async function openIncident(rule, tank, latests) {
     }
   }
   console.log(`Incident ${incident.incident_id} ${incident.severity}`);
+  await notify(incident.toObject(), latests);
   return incident;
 }
 
@@ -82,26 +84,41 @@ export async function resolvePending(tankId, latests) {
   );
 }
 
+export async function resolveLowWater(tankId, latests) {
+  const level = Number(latestField(latests, "tank_level", "level_pct"));
+  const motor = latestField(latests, "motor_state", "state");
+  if (motor === "off" && !Number.isNaN(level) && level <= 15) {
+    return;
+  }
+  await Incident.updateMany(
+    { tank_id: tankId, open: true, severity: "low_water" },
+    { $set: { open: false, resolved_at: new Date(), "action_taken.status": "cleared" } },
+    MAJORITY
+  );
+}
+
 export async function escalateStale(tankId, latests) {
   if (latestField(latests, "motor_state", "state") !== "on") {
     return;
   }
   const cutoff = new Date(Date.now() - 30_000);
+  const stale = await Incident.find({
+    tank_id: tankId,
+    open: true,
+    escalated: false,
+    "action_taken.type": "motor_off",
+    "action_taken.status": "pending",
+    triggered_at: { $lte: cutoff },
+  }).lean();
+  if (!stale.length) {
+    return;
+  }
   await Incident.updateMany(
-    {
-      tank_id: tankId,
-      open: true,
-      escalated: false,
-      "action_taken.type": "motor_off",
-      "action_taken.status": "pending",
-      triggered_at: { $lte: cutoff },
-    },
-    {
-      $set: {
-        escalated: true,
-        severity: "confirmed_fault",
-      },
-    },
+    { incident_id: { $in: stale.map((item) => item.incident_id) } },
+    { $set: { escalated: true, severity: "confirmed_fault" } },
     MAJORITY
   );
+  for (const incident of stale) {
+    await notify({ ...incident, severity: "confirmed_fault" }, latests);
+  }
 }

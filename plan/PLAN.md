@@ -6,17 +6,20 @@ This is the CMP6207 project for ioThings: a simulated household tank, MQTT, a No
 
 ## Decisions that stayed locked
 
-- Warning at **90%** while the pump is on: write an incident, do not send a command.
+- Warning at **90%** while the pump is on: write an incident, do not send a command. From the status page the person can switch the pump off at 95%, or at any other level. If they do not, the pump still stops at 98%.
 - Pump off at **98%** while the pump is on. The demo does not wait for 100%, because 100% is already an overflow.
+- Low tank at **15%** while the pump is off: write an incident, do not start the pump. The incident closes when the level rises above 15% or the pump turns on.
 - Each sensor publishes its own MQTT message. `telemetry.reading` has a different shape per `device_type`. The status page joins the current values from `device_latest`.
 - Four devices: `tank_level`, `water_flow`, `motor_state`, `source_presence`. The inlet sensor is what separates a dry pump from a broken pump.
 - Rules are a condition list (`device_type`, `field`, `operator`, `value`), not a raw MongoDB query.
-- A warning is an incident on the API and the status page. There is no Telegram bot and no phone push.
+- A warning is an incident, a notification, and a line on the status page. Telegram is sent only when the full bot token and the person's own chat id are set. A phone app is optional and is not built.
 - Database name `smart_water`. Replica set `rs0` on ports 27017, 27018, and 27019.
 - Telemetry and `device_latest` use write concern `w: 1`. Incidents use `w: "majority"`. The rule engine reads from the primary.
 - Litres saved on an overflow cutoff is `flow_rate_lpm × 20`.
 
-Left out on purpose: humidity, temperature, a combined level-plus-flow message, an 85% watch tier, a cutoff at 100%, pet climate, the idle-charger plug, a mobile app, and real hardware.
+Litres in the tank, litres left until 98%, and minutes until that cutoff are calculated when the tank is read. They are not stored as their own sensor message.
+
+Left out on purpose: humidity, temperature, turbidity, TDS, a combined level-plus-flow message, an 85% watch tier, a cutoff at 100%, pet climate, the idle-charger plug, several tanks, pump schedules, starting the pump when the tank is low, and real hardware. A mobile app can use this API later.
 
 ## Architecture
 
@@ -35,7 +38,7 @@ Topics:
 - `ioThings/{home_id}/{tank_id}/{device_type}/{device_id}/telemetry`
 - `ioThings/{home_id}/{tank_id}/motor/{device_id}/command` at QoS 1
 
-Collections: `tanks`, `devices`, `telemetry`, `device_latest`, `automation_rules`, `incidents`.
+Collections: `tanks`, `devices`, `telemetry`, `device_latest`, `automation_rules`, `incidents`, `notifications`.
 
 Seeded ids: `home_001`, `tank_roof_01`, capacity 1000 litres, pump `motor_roof_01`.
 
@@ -48,6 +51,8 @@ Seeded ids: `home_001`, `tank_roof_01`, capacity 1000 litres, pump `motor_roof_0
 | `dry_run` | pump on and `water_present` false | `motor_off` and incident |
 | `pump_failure` | pump on, water present, flow about 0, level not rising | incident only |
 | `abnormal_flow` | pump off and flow > 0 | incident only |
+| `low_water` | level ≤ 15 and pump off | incident only |
+| `manual_override` | Off or On on the status page | MQTT command and incident |
 | `confirmed_fault` | off command sent and pump still on after 30 seconds | mark the open incident escalated |
 
 A multi-sensor rule runs only when the readings it needs were updated together. A flow value from before the pump changed state does not count.
@@ -63,6 +68,9 @@ Base `http://localhost:3000/api`.
 - Telemetry: `POST /telemetry`, `GET /telemetry?deviceId=&from=&to=`
 - Incidents: `GET /incidents`, `GET /incidents/stats`, `GET /incidents/:incidentId`, `PATCH /incidents/:incidentId`
 - `POST /motors/:deviceId/override` with `{ "command": "on" }` or `{ "command": "off" }`
+- `GET /notifications?homeId=home_001`
+
+`GET /tanks/:tankId` includes `litres_in_tank`, `litres_to_cutoff`, `minutes_to_cutoff`, `runtime_seconds`, and `cumulative_litres` on `current`.
 
 `GET /incidents/stats` returns counts by severity, average detection-to-cutoff time, litres saved, and average level by day.
 
@@ -74,7 +82,8 @@ Base `http://localhost:3000/api`.
 | Seed, models, indexes | `backend/src/seed.js`, `backend/src/models/` | Done. `npm run seed` |
 | MQTT ingest and rule engine | `backend/src/ingest.js`, `backend/src/rules/` | Done |
 | REST API | `backend/src/routes/` | Done |
-| Status page | `backend/src/public/index.html` | Done. Polls the tank and recent incidents. |
+| Status page | `backend/src/public/index.html` | Done. Litres, minutes to cutoff, Off and On, level history, totals, acknowledge. |
+| Notifications | `backend/src/services/notificationService.js` | Done. Stored for every incident, including a manual Off or On. Telegram when configured. |
 | Simulator | `simulator/src/simulator.js` | Done. `normal`, `overflow`, `dry-run`, `pump-failure`, `abnormal-flow`, `fault` |
 | Embedded MQTT broker | `backend/src/broker.js` | Done. Listens on 1883 when that port is free. Mosquitto is used instead if it is already there. |
 
