@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roof tank</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #f4f7fb; color: #102033; }
+    header { background: #003366; color: white; padding: 1.25rem 1.5rem; }
+    header p { margin: 0.25rem 0 0; font-family: system-ui, sans-serif; font-size: 0.9rem; opacity: 0.85; }
+    main { max-width: 720px; margin: 0 auto; padding: 1.25rem; display: grid; gap: 1rem; }
+    section { background: white; border: 1px solid #d5deea; border-radius: 8px; padding: 1rem 1.1rem; }
+    h2 { margin: 0 0 0.75rem; font-size: 1.05rem; color: #003366; }
+    .level { font-size: 2.5rem; margin: 0; }
+    .bar { height: 18px; background: #e6eef6; border-radius: 99px; overflow: hidden; margin-top: 0.6rem; }
+    .bar span { display: block; height: 100%; background: #003366; width: 0; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-family: system-ui, sans-serif; }
+    .grid strong { display: block; font-size: 1.1rem; }
+    .grid span { color: #5c6b7a; font-size: 0.8rem; }
+    ul { list-style: none; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    li { padding: 0.45rem 0; border-top: 1px solid #e6eef6; }
+    .warn { color: #8a5a00; }
+    .bad { color: #8d1d1d; }
+    .ok { color: #1d6b3a; }
+    #status { font-family: system-ui, sans-serif; font-size: 0.85rem; color: #5c6b7a; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Roof tank</h1>
+    <p>home_001 · tank_roof_01 · warning 90% · pump off at 98%</p>
+  </header>
+  <main>
+    <section>
+      <h2>Tank level</h2>
+      <p class="level" id="level">--%</p>
+      <div class="bar"><span id="bar"></span></div>
+    </section>
+    <section>
+      <div class="grid">
+        <div><span>Pump</span><strong id="pump">--</strong></div>
+        <div><span>Flow</span><strong id="flow">--</strong></div>
+        <div><span>Inlet water</span><strong id="source">--</strong></div>
+      </div>
+    </section>
+    <section>
+      <h2>Recent incidents</h2>
+      <ul id="incidents"></ul>
+    </section>
+    <p id="status">Waiting for the API…</p>
+  </main>
+  <script>
+    const levelEl = document.getElementById("level");
+    const barEl = document.getElementById("bar");
+    const pumpEl = document.getElementById("pump");
+    const flowEl = document.getElementById("flow");
+    const sourceEl = document.getElementById("source");
+    const listEl = document.getElementById("incidents");
+    const statusEl = document.getElementById("status");
+
+    function cssClass(severity) {
+      if (severity === "warning") return "warn";
+      if (severity === "overflow_prevented" || severity === "dry_run" || severity === "confirmed_fault" || severity === "pump_failure" || severity === "abnormal_flow") return "bad";
+      return "ok";
+    }
+
+    async function refresh() {
+      const [health, tank, incidents] = await Promise.all([
+        fetch("/api/health").then((r) => r.json()),
+        fetch("/api/tanks/tank_roof_01").then((r) => r.json()),
+        fetch("/api/incidents?tankId=tank_roof_01").then((r) => r.json()),
+      ]);
+      const level = tank.current?.level_pct;
+      levelEl.textContent = level === null || level === undefined ? "--%" : `${level}%`;
+      barEl.style.width = `${level || 0}%`;
+      pumpEl.textContent = tank.current?.pump_state || "--";
+      flowEl.textContent = tank.current?.flow_rate_lpm === null || tank.current?.flow_rate_lpm === undefined ? "--" : `${tank.current.flow_rate_lpm} L/min`;
+      sourceEl.textContent = tank.current?.water_present === null || tank.current?.water_present === undefined ? "--" : tank.current.water_present ? "present" : "absent";
+      listEl.innerHTML = "";
+      for (const incident of incidents.slice(0, 8)) {
+        const item = document.createElement("li");
+        item.className = cssClass(incident.severity);
+        const when = new Date(incident.triggered_at).toLocaleTimeString();
+        item.textContent = `${when} · ${incident.severity} · ${incident.action_taken?.status || "logged"}`;
+        listEl.appendChild(item);
+      }
+      if (!incidents.length) {
+        const item = document.createElement("li");
+        item.textContent = "No incidents yet.";
+        listEl.appendChild(item);
+      }
+      statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt}`;
+    }
+
+    refresh().catch((error) => {
+      statusEl.textContent = error.message;
+    });
+    setInterval(() => {
+      refresh().catch((error) => {
+        statusEl.textContent = error.message;
+      });
+    }, 2000);
+  </script>
+</body>
+</html>

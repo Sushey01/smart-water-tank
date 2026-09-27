@@ -1,0 +1,6 @@
+node_modules
+.env
+mongodb/node1/data
+mongodb/node2/data
+mongodb/node3/data
+mongodb/logs
