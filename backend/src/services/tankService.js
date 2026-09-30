@@ -1,4 +1,4 @@
-import { DeviceLatest } from "../models/index.js";
+import { modelsFor } from "../db.js";
 
 function field(latests, deviceType, name) {
   const doc = latests.find((item) => item.device_type === deviceType);
@@ -38,6 +38,6 @@ export function deriveCurrent(tank, latests) {
 }
 
 export async function withCurrent(tank) {
-  const latests = await DeviceLatest.find({ tank_id: tank.tank_id }).lean();
+  const latests = await modelsFor("water_tank").DeviceLatest.find({ tank_id: tank.tank_id }).lean();
   return { ...tank, current: deriveCurrent(tank, latests) };
 }

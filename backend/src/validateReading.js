@@ -28,4 +28,35 @@ export function validateReading(deviceType, reading) {
   if (deviceType === "source_presence" && typeof reading.water_present !== "boolean") {
     throw httpError(400, "water_present must be a boolean");
   }
+  if (deviceType === "desk_presence" && typeof reading.present !== "boolean") {
+    throw httpError(400, "present must be a boolean");
+  }
+  if (deviceType === "ambient_light") {
+    const lux = Number(reading.lux);
+    if (Number.isNaN(lux) || lux < 0) {
+      throw httpError(400, "lux must be zero or greater");
+    }
+  }
+  if (deviceType === "desk_lamp") {
+    if (!["on", "off"].includes(reading.state)) {
+      throw httpError(400, "state must be on or off");
+    }
+    if (!["study", "off"].includes(reading.mode)) {
+      throw httpError(400, "mode must be study or off");
+    }
+    const kelvin = Number(reading.color_temp_k);
+    const brightness = Number(reading.brightness_pct);
+    if (Number.isNaN(kelvin) || kelvin < 0) {
+      throw httpError(400, "color_temp_k must be zero or greater");
+    }
+    if (Number.isNaN(brightness) || brightness < 0 || brightness > 100) {
+      throw httpError(400, "brightness_pct must be between 0 and 100");
+    }
+  }
+  if (deviceType === "room_temperature" && Number.isNaN(Number(reading.temp_c))) {
+    throw httpError(400, "temp_c must be a number");
+  }
+  if (deviceType === "hvac" && !["off", "cooling"].includes(reading.state)) {
+    throw httpError(400, "state must be off or cooling");
+  }
 }

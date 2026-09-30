@@ -1,7 +1,24 @@
-export { Tank } from "./Tank.js";
-export { Device } from "./Device.js";
-export { Telemetry } from "./Telemetry.js";
-export { DeviceLatest } from "./DeviceLatest.js";
-export { Rule } from "./Rule.js";
-export { Incident } from "./Incident.js";
-export { Notification } from "./Notification.js";
+import { deviceSchema } from "./Device.js";
+import { deviceLatestSchema } from "./DeviceLatest.js";
+import { incidentSchema } from "./Incident.js";
+import { notificationSchema } from "./Notification.js";
+import { ruleSchema } from "./Rule.js";
+import { subsystemSchema } from "./Subsystem.js";
+import { tankSchema } from "./Tank.js";
+import { telemetrySchema } from "./Telemetry.js";
+
+export function registerModels(connection, { withTanks = false } = {}) {
+  const models = {
+    Subsystem: connection.model("Subsystem", subsystemSchema),
+    Device: connection.model("Device", deviceSchema),
+    Telemetry: connection.model("Telemetry", telemetrySchema),
+    DeviceLatest: connection.model("DeviceLatest", deviceLatestSchema),
+    Rule: connection.model("Rule", ruleSchema),
+    Incident: connection.model("Incident", incidentSchema),
+    Notification: connection.model("Notification", notificationSchema),
+  };
+  if (withTanks) {
+    models.Tank = connection.model("Tank", tankSchema);
+  }
+  return models;
+}

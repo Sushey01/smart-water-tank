@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Telemetry } from "../models/index.js";
+import { findMerged } from "../db.js";
 import { recordSerialized } from "../services/telemetryService.js";
 import { asyncHandler, httpError } from "../middleware/errorHandler.js";
 
@@ -26,7 +26,7 @@ router.get(
       if (req.query.to) filter.timestamp.$lte = new Date(req.query.to);
     }
     const limit = Math.min(Number(req.query.limit) || 100, 500);
-    const rows = await Telemetry.find(filter).sort({ timestamp: -1 }).limit(limit).lean();
+    const rows = await findMerged("Telemetry", filter, { sort: { timestamp: -1 }, limit });
     res.json(rows);
   })
 );

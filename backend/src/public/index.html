@@ -3,86 +3,303 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roof tank</title>
+  <title>Home</title>
   <style>
-    :root { color-scheme: light; }
-    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #f4f7fb; color: #102033; }
-    header { background: #003366; color: white; padding: 1.25rem 1.5rem; }
-    header p { margin: 0.25rem 0 0; font-family: system-ui, sans-serif; font-size: 0.9rem; opacity: 0.85; }
-    main { max-width: 720px; margin: 0 auto; padding: 1.25rem; display: grid; gap: 1rem; }
-    section { background: white; border: 1px solid #d5deea; border-radius: 8px; padding: 1rem 1.1rem; }
-    h2 { margin: 0 0 0.75rem; font-size: 1.05rem; color: #003366; }
-    .level { font-size: 2.5rem; margin: 0; }
-    .sub { margin: 0.2rem 0 0; font-family: system-ui, sans-serif; color: #5c6b7a; }
-    .bar { height: 18px; background: #e6eef6; border-radius: 99px; overflow: hidden; margin-top: 0.6rem; }
-    .bar span { display: block; height: 100%; background: #003366; width: 0; }
-    .banner { margin: 0.8rem 0 0; padding: 0.65rem 0.75rem; border-radius: 6px; font-family: system-ui, sans-serif; background: #fff6e5; color: #8a5a00; }
-    .banner.bad { background: #fdecec; color: #8d1d1d; }
-    .banner.ok { background: #e8f6ee; color: #1d6b3a; }
-    .controls { display: flex; gap: 0.5rem; margin-top: 0.85rem; }
-    button { font-family: system-ui, sans-serif; border: 0; border-radius: 6px; padding: 0.45rem 0.9rem; background: #003366; color: white; cursor: pointer; }
-    button.quiet { background: #e6eef6; color: #003366; }
-    button:disabled { opacity: 0.55; cursor: default; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; font-family: system-ui, sans-serif; }
-    .grid strong { display: block; font-size: 1.1rem; }
-    .grid span { color: #5c6b7a; font-size: 0.8rem; }
-    .history { display: flex; align-items: flex-end; gap: 3px; height: 72px; margin-top: 0.4rem; }
-    .history i { display: block; flex: 1; background: #003366; border-radius: 2px 2px 0 0; min-height: 2px; }
-    ul { list-style: none; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    li { padding: 0.45rem 0; border-top: 1px solid #e6eef6; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
-    .warn { color: #8a5a00; }
-    .bad { color: #8d1d1d; }
-    .ok { color: #1d6b3a; }
-    #action, #status { font-family: system-ui, sans-serif; font-size: 0.85rem; color: #5c6b7a; margin: 0; }
+    :root { color-scheme: light; --ink: #3a2a1c; --muted: #7a6554; --orange: #e8873a; --paper: #f3eee6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Avenir Next", "Trebuchet MS", sans-serif; background: var(--paper); color: var(--ink); }
+    button { font: inherit; cursor: pointer; }
+    .nav { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 6vw; background: var(--paper); }
+    .brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; letter-spacing: 0.04em; background: transparent; color: var(--ink); border: 0; padding: 0; }
+    .mark { width: 36px; height: 36px; border: 2px solid var(--ink); border-radius: 8px; display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; }
+    .brand small { display: block; font-size: 0.62rem; font-weight: 500; letter-spacing: 0; color: var(--muted); }
+    .links { display: flex; gap: 1.4rem; font-size: 0.95rem; align-items: center; }
+    .links button { background: transparent; color: var(--ink); border: 0; padding: 0.2rem; }
+    .links button:hover { color: var(--orange); }
+    .stage { padding: 0.4rem 4vw 2.2rem; }
+    .collage { position: relative; border-radius: 22px; overflow: hidden; min-height: 78vh; background: radial-gradient(circle at 78% 12%, #2c261f 0%, #161411 46%, #0d0c0b 100%); color: #f6f1ea; }
+    .collage[data-view="home"] { background: radial-gradient(ellipse at 50% 0%, #f0d7b0 0%, #d7b48a 28%, #b88962 62%, #9a704c 100%); color: var(--ink); }
+    .hero-grid[hidden], .sheet[hidden] { display: none !important; }
+
+    .living { min-height: 78vh; display: flex; flex-direction: column; padding: 2.4rem 1.5rem 0; text-align: center; }
+    .kicker { margin: 0; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.72rem; color: #6d533c; }
+    .living h1 { margin: 0.35rem 0 0; font-size: clamp(2.1rem, 4.5vw, 3.4rem); font-weight: 600; letter-spacing: -0.035em; }
+    .lede { margin: 0.45rem auto 0; max-width: 28rem; color: #5c4634; }
+    .device-row { display: flex; justify-content: center; gap: 0.4rem; margin-top: 1.35rem; flex-wrap: wrap; }
+    .device { width: 92px; background: transparent; color: var(--ink); border: 0; border-radius: 14px; padding: 0.55rem 0.3rem 0.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; position: relative; }
+    .device svg { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    .device strong { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.08em; }
+    .device em { font-style: normal; font-size: 0.68rem; color: #6d533c; }
+    .device:hover { background: rgba(255,255,255,0.34); }
+    .room { position: relative; flex: 1; min-height: 340px; margin-top: 0.8rem; background: linear-gradient(180deg, transparent 0 calc(100% - 220px), #eddcc6 calc(100% - 220px) 100%); }
+    .rug { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(680px, 84%); height: 86px; background: rgba(255,255,255,0.28); border-radius: 16px; }
+    .screen { position: absolute; left: 50%; bottom: 248px; transform: translateX(-50%); width: min(220px, 46vw); background: #231c16; color: #f6e7c8; border-radius: 10px; padding: 0.7rem 0.85rem; display: grid; gap: 0.2rem; text-align: left; box-shadow: 0 14px 28px rgba(70, 40, 10, 0.22); font-size: 0.78rem; }
+    .screen b { font-weight: 600; }
+    .sofa { position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); width: min(480px, 68%); height: 118px; background: #f7f4ef; border-radius: 18px 18px 12px 12px; box-shadow: 0 18px 28px rgba(80, 48, 16, 0.16); display: flex; align-items: flex-end; justify-content: center; gap: 10px; padding: 0 28px 16px; }
+    .sofa span { flex: 1; height: 64px; background: #efe2d2; border-radius: 12px 12px 8px 8px; }
+    .sofa::before, .sofa::after { content: ""; position: absolute; bottom: 0; width: 20px; height: 78px; background: #f7f4ef; border-radius: 8px; }
+    .sofa::before { left: -8px; }
+    .sofa::after { right: -8px; }
+    .table { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); width: 132px; height: 26px; background: #c9a57a; border-radius: 8px; box-shadow: 0 10px 0 #b08a62; }
+    .plant { position: absolute; left: 8%; bottom: 86px; width: 64px; height: 110px; }
+    .plant i { position: absolute; bottom: 22px; left: 6px; width: 48px; height: 64px; background: #6f8f5e; border-radius: 40px 40px 18px 18px; }
+    .plant b { position: absolute; bottom: 0; left: 14px; width: 34px; height: 26px; background: #c4a27a; border-radius: 3px 3px 8px 8px; }
+    .floor-lamp { position: absolute; right: 9%; bottom: 86px; width: 52px; height: 148px; }
+    .floor-lamp i { position: absolute; top: 0; left: 4px; width: 36px; height: 28px; background: #f8e7c4; clip-path: polygon(10% 100%, 90% 100%, 70% 0, 30% 0); }
+    .floor-lamp b { position: absolute; top: 28px; left: 21px; width: 3px; height: 78px; background: #8d6b45; }
+
+    .sheet { padding: 0.85rem; }
+    .dash { display: grid; gap: 0.75rem; min-height: 76vh; }
+    .dash-head { display: flex; align-items: center; gap: 0.8rem; }
+    .back, .dash button { border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: #fff; border-radius: 999px; padding: 0.5rem 0.95rem; }
+    .dash button.is-on { background: var(--orange); border-color: var(--orange); }
+    .dash button:disabled { opacity: 0.55; cursor: default; }
+    .chip { margin-left: auto; text-transform: capitalize; border-radius: 999px; padding: 0.35rem 0.8rem; background: rgba(255,255,255,0.08); }
+    .hero-copy .chip { margin: 0.75rem 0 0; display: inline-block; }
+    .chip.hot { background: var(--orange); }
+    .board { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 0.75rem; }
+    .panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 1rem 1.05rem; }
+    .hero { position: relative; overflow: hidden; min-height: 340px; display: flex; align-items: flex-end; grid-column: 1; grid-row: 1 / span 3; }
+    .chart-card { grid-column: 2 / span 2; display: flex; flex-direction: column; justify-content: flex-end; min-height: 148px; }
+    .wide { grid-column: 1 / -1; }
+    .hero-copy { position: relative; z-index: 1; max-width: 26rem; }
+    .eyebrow { margin: 0; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.72rem; color: rgba(246,241,234,0.62); }
+    .hero h2, .dash-head h2 { margin: 0.15rem 0 0; font-size: 1.7rem; font-weight: 600; letter-spacing: -0.03em; }
+    .level { margin: 0.45rem 0 0; font-size: clamp(2.4rem, 4vw, 3.3rem); font-weight: 560; letter-spacing: -0.04em; line-height: 1; }
+    .sub { margin: 0.35rem 0 0; color: rgba(246,241,234,0.68); }
+    .banner { margin: 0.8rem 0 0; padding: 0.65rem 0.75rem; border-radius: 10px; background: rgba(232,135,58,0.18); color: #ffd7b0; }
+    .banner.bad { background: rgba(176, 48, 48, 0.28); color: #ffc7c7; }
+    .banner.ok { background: rgba(46, 130, 84, 0.24); color: #c9f0d6; }
+    .stat { min-height: 96px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .stat > span, .chart-card h3, .notes-card h3 { margin: 0; color: rgba(246,241,234,0.58); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+    .stat strong { display: block; margin-top: 0.3rem; font-size: 1.35rem; font-weight: 600; }
+    .cap { text-transform: capitalize; }
+    .hint { display: block; margin-top: 0.15rem; color: rgba(246,241,234,0.55); font-size: 0.75rem; text-transform: capitalize; }
+    .ring-stat { flex-direction: row; align-items: center; gap: 0.75rem; }
+    .ring { width: 68px; height: 68px; transform: rotate(-90deg); flex: none; }
+    .ring circle { fill: none; stroke-width: 9; }
+    .ring .track { stroke: rgba(255,255,255,0.12); }
+    .ring .value { stroke: var(--orange); stroke-linecap: round; stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 0.45s ease; }
+    .history { display: flex; align-items: flex-end; gap: 3px; height: 92px; margin-top: 0.7rem; }
+    .history i { display: block; flex: 1; min-height: 2px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #ffc27a, #e8873a); }
+    .controls-card { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+    .controls { display: flex; gap: 0.5rem; }
+    #action, #focus-action, #climate-action { margin: 0; color: rgba(246,241,234,0.7); font-size: 0.88rem; }
+    .feed { list-style: none; margin: 0.7rem 0 0; padding: 0; max-height: 240px; overflow: auto; }
+    .feed li { padding: 0.7rem 0; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+    .dash .warn { color: #ffc56b; }
+    .dash .bad { color: #ff9a9a; }
+    .dash .ok { color: #9ee0b6; }
+    .scene-water { background: radial-gradient(circle at 82% 22%, rgba(120, 190, 220, 0.24), transparent 38%), rgba(255,255,255,0.05); }
+    .tank { position: absolute; right: 1.5rem; top: 1.4rem; width: 92px; height: 168px; border: 2px solid rgba(255,255,255,0.38); border-radius: 10px 10px 20px 20px; overflow: hidden; background: rgba(255,255,255,0.04); }
+    .tank span { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(180deg, #9ad7ee, #2d6d8c); }
+    .scene-desk .glow { position: absolute; right: 16%; top: 16%; width: 84px; height: 84px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+    .scene-desk.lit { background: radial-gradient(circle at 74% 22%, rgba(255, 176, 70, 0.42), transparent 42%), linear-gradient(160deg, #2a2118, #14110e 70%); }
+    .scene-desk.lit .glow { background: #ffe3ad; box-shadow: 0 0 48px 18px rgba(255, 170, 60, 0.4); }
+    .thermo { position: absolute; right: 1.7rem; top: 1.5rem; width: 18px; height: 150px; border-radius: 99px; border: 2px solid rgba(255,255,255,0.32); overflow: hidden; }
+    .alerts-dash .notes-card { min-height: 62vh; }
+    .thermo span { position: absolute; left: 0; right: 0; bottom: 0; height: 12%; background: linear-gradient(180deg, #ffc27a, #e8873a); }
+    .scene-air.cooling { background: radial-gradient(circle at 80% 16%, rgba(130, 190, 255, 0.32), transparent 42%), linear-gradient(160deg, #172430, #101114 70%); }
+    .scene-air.cooling .thermo span { background: linear-gradient(180deg, #b9ddff, #3c86c4); }
+    .alerts-dash .feed { max-height: none; }
+    footer { padding: 0.2rem 6vw 1.6rem; color: var(--muted); font-size: 0.85rem; }
+    @media (max-width: 860px) {
+      .nav { flex-wrap: wrap; padding: 0.75rem 1rem; }
+      .links { gap: 0.8rem; font-size: 0.85rem; }
+      .stage { padding: 0.4rem 0.75rem 1.4rem; }
+      .living { padding-top: 1.4rem; }
+      .board { grid-template-columns: 1fr; }
+      .hero, .chart-card, .wide { grid-column: 1; grid-row: auto; }
+      .hero { min-height: 280px; }
+      .sofa { width: 86%; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Roof tank</h1>
-    <p>home_001 · tank_roof_01 · notice at 90% · you can stop the pump · automatic off at 98%</p>
-  </header>
-  <main>
-    <section>
-      <h2>Tank</h2>
-      <p class="level" id="litres">-- L</p>
-      <p class="sub" id="level">--%</p>
-      <div class="bar"><span id="bar"></span></div>
-      <p class="sub" id="eta"></p>
-      <p class="banner" id="banner" hidden></p>
-    </section>
-    <section>
-      <div class="grid">
-        <div><span>Pump</span><strong id="pump">--</strong></div>
-        <div><span>Flow</span><strong id="flow">--</strong></div>
-        <div><span>Inlet water</span><strong id="source">--</strong></div>
-        <div><span>Pump runtime</span><strong id="runtime">--</strong></div>
-        <div><span>Total flow</span><strong id="cumulative">--</strong></div>
-        <div><span>Litres saved</span><strong id="saved">--</strong></div>
+  <nav class="nav">
+    <button type="button" class="brand" data-open="home"><span class="mark">HA</span><span>Home<small>live rooms</small></span></button>
+    <div class="links">
+      <button type="button" data-open="water">Water</button>
+      <button type="button" data-open="light">Light</button>
+      <button type="button" data-open="climate">Climate</button>
+      <button type="button" data-open="alerts">Alerts</button>
+    </div>
+  </nav>
+  <div class="stage" id="top">
+    <div class="collage" id="collage" data-view="home">
+      <div class="hero-grid" id="view-home">
+        <div class="living">
+          <p class="kicker">Live house</p>
+          <h1>Open a room</h1>
+          <p class="lede">Water, light, and climate, each with its own live view.</p>
+          <div class="device-row">
+            <button type="button" class="device" data-open="water"><svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><strong>WATER</strong><em>Tank</em></button>
+            <button type="button" class="device" data-open="light"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a5 5 0 0 1 5 5c0 2.5-2 4-2 6H9c0-2-2-3.5-2-6a5 5 0 0 1 5-5z"/></svg><strong>LIGHT</strong><em>Desk</em></button>
+            <button type="button" class="device" data-open="climate"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M4.9 6.5l2.1 2.1M17 15.4l2.1 2.1M3 12h3M18 12h3M4.9 17.5 7 15.4M17 8.6l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg><strong>CLIMATE</strong><em>Room</em></button>
+            <button type="button" class="device" data-open="alerts"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><strong>ALERTS</strong><em id="home-alerts">0</em></button>
+          </div>
+          <div class="room" aria-hidden="true">
+            <div class="rug"></div>
+            <div class="screen">
+              <span>Tank <b id="home-level">--</b></span>
+              <span>Lamp <b id="home-lamp">--</b></span>
+              <span>Room <b id="home-temp">--</b></span>
+            </div>
+            <div class="plant"><i></i><b></b></div>
+            <div class="floor-lamp"><i></i><b></b></div>
+            <div class="sofa"><span></span><span></span><span></span></div>
+            <div class="table"></div>
+          </div>
+        </div>
       </div>
-      <div class="controls">
-        <button type="button" id="off">Off</button>
-        <button type="button" id="on" class="quiet">On</button>
+
+      <div class="sheet" data-sheet="water" hidden>
+        <div class="dash">
+          <div class="dash-head">
+            <button type="button" class="back" data-open="home">All rooms</button>
+          </div>
+          <div class="board">
+            <section class="panel hero scene-water">
+              <div class="tank" aria-hidden="true"><span id="bar"></span></div>
+              <div class="hero-copy">
+                <p class="eyebrow">Water</p>
+                <h2>Roof tank</h2>
+                <p class="chip" id="pump">--</p>
+                <p class="level" id="litres">-- L</p>
+                <p class="sub" id="level">--%</p>
+                <p class="sub" id="eta"></p>
+                <p class="banner" id="banner" hidden></p>
+              </div>
+            </section>
+            <section class="panel chart-card">
+              <h3>Recent level</h3>
+              <div class="history" id="history"></div>
+            </section>
+            <div class="panel stat"><span>Flow</span><strong id="flow">--</strong></div>
+            <div class="panel stat"><span>Inlet water</span><strong class="cap" id="source">--</strong></div>
+            <div class="panel stat"><span>Pump runtime</span><strong id="runtime">--</strong></div>
+            <div class="panel stat ring-stat">
+              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="46"></circle><circle class="value" id="level-ring" cx="60" cy="60" r="46"></circle></svg>
+              <div><span>Tank level</span><strong id="fill-pct">--%</strong></div>
+            </div>
+            <section class="panel wide controls-card">
+              <div class="controls">
+                <button type="button" id="off">Off</button>
+                <button type="button" id="on">On</button>
+              </div>
+              <p id="action"></p>
+            </section>
+            <section class="panel wide notes-card">
+              <h3>Tank incidents</h3>
+              <p class="sub" id="totals">Waiting for totals…</p>
+              <p class="sub">Total flow <strong id="cumulative">--</strong> · Saved <strong id="saved">--</strong></p>
+              <ul class="feed" id="incidents"></ul>
+            </section>
+          </div>
+        </div>
       </div>
-      <p id="action"></p>
-    </section>
-    <section>
-      <h2>Recent level</h2>
-      <div class="history" id="history"></div>
-    </section>
-    <section>
-      <h2>Totals</h2>
-      <p class="sub" id="totals">Waiting for totals…</p>
-    </section>
-    <section>
-      <h2>Notifications</h2>
-      <ul id="notifications"></ul>
-    </section>
-    <section>
-      <h2>Recent incidents</h2>
-      <ul id="incidents"></ul>
-    </section>
-    <p id="status">Waiting for the API…</p>
-  </main>
+
+      <div class="sheet" data-sheet="light" hidden>
+        <div class="dash">
+          <div class="dash-head">
+            <button type="button" class="back" data-open="home">All rooms</button>
+          </div>
+          <div class="board">
+            <section class="panel hero scene-desk">
+              <div class="glow" aria-hidden="true"></div>
+              <div class="hero-copy">
+                <p class="eyebrow">Light</p>
+                <h2>Study desk</h2>
+                <p class="level" id="lamp-mode">--</p>
+                <p class="sub" id="lamp-detail">Waiting for the desk…</p>
+                <p class="banner" id="focus-banner" hidden></p>
+              </div>
+            </section>
+            <section class="panel chart-card">
+              <h3>Recent light</h3>
+              <div class="history" id="lux-history"></div>
+            </section>
+            <div class="panel stat"><span>Someone sitting</span><strong class="cap" id="presence">--</strong></div>
+            <div class="panel stat"><span>Room light</span><strong id="lux">--</strong></div>
+            <div class="panel stat"><span>Colour</span><strong id="kelvin">--</strong></div>
+            <div class="panel stat ring-stat">
+              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="46"></circle><circle class="value" id="brightness-ring" cx="60" cy="60" r="46"></circle></svg>
+              <div><span>Brightness</span><strong id="brightness">--</strong><span class="hint" id="lamp-state">--</span></div>
+            </div>
+            <section class="panel wide controls-card">
+              <div class="controls">
+                <button type="button" id="study">Study</button>
+                <button type="button" id="lamp-off">Off</button>
+              </div>
+              <p id="focus-action"></p>
+            </section>
+            <section class="panel wide notes-card">
+              <h3>Desk incidents</h3>
+              <ul class="feed" id="focus-incidents"></ul>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet" data-sheet="climate" hidden>
+        <div class="dash">
+          <div class="dash-head">
+            <button type="button" class="back" data-open="home">All rooms</button>
+          </div>
+          <div class="board">
+            <section class="panel hero scene-air">
+              <div class="thermo" aria-hidden="true"><span id="thermo"></span></div>
+              <div class="hero-copy">
+                <p class="eyebrow">Climate</p>
+                <h2>Living room</h2>
+                <p class="level" id="temp">--°C</p>
+                <p class="sub" id="hvac-detail">Waiting for the room…</p>
+                <p class="banner" id="climate-banner" hidden></p>
+              </div>
+            </section>
+            <section class="panel chart-card">
+              <h3>Recent temperature</h3>
+              <div class="history" id="temp-history"></div>
+            </section>
+            <div class="panel stat"><span>Air conditioner</span><strong class="cap" id="hvac">--</strong></div>
+            <div class="panel stat"><span>Starts cooling</span><strong>above 28°C</strong></div>
+            <div class="panel stat"><span>Stops cooling</span><strong>at 26°C</strong></div>
+            <div class="panel stat ring-stat">
+              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="46"></circle><circle class="value" id="temp-ring" cx="60" cy="60" r="46"></circle></svg>
+              <div><span>Comfort band</span><strong>26–28°</strong></div>
+            </div>
+            <section class="panel wide controls-card">
+              <div class="controls">
+                <button type="button" id="cool">Cool</button>
+                <button type="button" id="hvac-off">Off</button>
+              </div>
+              <p id="climate-action"></p>
+            </section>
+            <section class="panel wide notes-card">
+              <h3>Climate incidents</h3>
+              <ul class="feed" id="climate-incidents"></ul>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet" data-sheet="alerts" hidden>
+        <div class="dash alerts-dash">
+          <div class="dash-head">
+            <button type="button" class="back" data-open="home">All rooms</button>
+            <div>
+              <p class="eyebrow">Alerts</p>
+              <h2>Notifications</h2>
+            </div>
+          </div>
+          <section class="panel notes-card">
+            <ul class="feed" id="notifications"></ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer><span id="status">Waiting for the API…</span></footer>
   <script>
     const litresEl = document.getElementById("litres");
     const levelEl = document.getElementById("level");
@@ -103,6 +320,12 @@
     const actionEl = document.getElementById("action");
     const offBtn = document.getElementById("off");
     const onBtn = document.getElementById("on");
+    const studyBtn = document.getElementById("study");
+    const lampOffBtn = document.getElementById("lamp-off");
+    const coolBtn = document.getElementById("cool");
+    const hvacOffBtn = document.getElementById("hvac-off");
+    const focusActionEl = document.getElementById("focus-action");
+    const climateActionEl = document.getElementById("climate-action");
     let busy = false;
 
     function cssClass(severity) {
@@ -113,6 +336,18 @@
 
     function showNumber(value, suffix) {
       return value === null || value === undefined ? "--" : `${value}${suffix}`;
+    }
+
+    function setText(id, text) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = text;
+    }
+
+    function setRing(id, pct) {
+      const node = document.getElementById(id);
+      if (!node) return;
+      const clamped = Math.max(0, Math.min(100, Number(pct) || 0));
+      node.style.strokeDashoffset = String(289 * (1 - clamped / 100));
     }
 
     function setBanner(level, pump) {
@@ -136,6 +371,108 @@
       }
       bannerEl.hidden = true;
       bannerEl.textContent = "";
+    }
+
+    function fillHistory(container, points, pick, titleFor) {
+      container.innerHTML = "";
+      if (!points.length) {
+        container.textContent = "No history yet.";
+        return;
+      }
+      const values = points.map(pick);
+      const peak = Math.max(...values, 1);
+      for (const point of points) {
+        const value = pick(point);
+        const bar = document.createElement("i");
+        bar.style.height = `${Math.max((value / peak) * 100, 2)}%`;
+        bar.title = titleFor(value);
+        container.appendChild(bar);
+      }
+    }
+
+    function fillIncidents(container, incidents) {
+      const rows = Array.isArray(incidents) ? incidents : [];
+      container.innerHTML = "";
+      for (const incident of rows.slice(0, 6)) {
+        const item = document.createElement("li");
+        item.className = cssClass(incident.severity);
+        const when = new Date(incident.triggered_at).toLocaleTimeString();
+        const label = document.createElement("span");
+        const ack = incident.acknowledged_at ? " · acknowledged" : "";
+        label.textContent = `${when} · ${incident.severity} · ${incident.action_taken?.status || "logged"}${ack}`;
+        item.appendChild(label);
+        if (incident.open && !incident.acknowledged_at) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = "Acknowledge";
+          button.addEventListener("click", () => acknowledge(incident.incident_id, button));
+          item.appendChild(button);
+        }
+        container.appendChild(item);
+      }
+      if (!rows.length) {
+        const item = document.createElement("li");
+        item.textContent = "No incidents yet.";
+        container.appendChild(item);
+      }
+    }
+
+    function setFocusBanner(current) {
+      const banner = document.getElementById("focus-banner");
+      banner.className = "banner";
+      banner.hidden = false;
+      if (current.present && current.mode === "study") {
+        banner.classList.add("ok");
+        banner.textContent = "Study light is on: 6500 K, full brightness.";
+        return;
+      }
+      if (current.present) {
+        banner.textContent = "Someone is at the desk. The lamp is switching to study mode.";
+        return;
+      }
+      banner.classList.add("ok");
+      banner.textContent = "The desk is empty. The lamp stays off.";
+    }
+
+    function setClimateBanner(current) {
+      const banner = document.getElementById("climate-banner");
+      banner.className = "banner";
+      banner.hidden = false;
+      const temp = Number(current.temp_c);
+      if (current.hvac_state === "cooling") {
+        banner.textContent = "Cooling is on. It stops when the room reaches 26°C.";
+        return;
+      }
+      if (!Number.isNaN(temp) && temp > 28) {
+        banner.classList.add("bad");
+        banner.textContent = "The room is above 28°C. Cooling is starting.";
+        return;
+      }
+      banner.classList.add("ok");
+      banner.textContent = "The room is at or below 28°C.";
+    }
+
+    async function sendActuator(deviceId, command, buttons, actionNode, pending, done) {
+      if (busy) return;
+      busy = true;
+      for (const button of buttons) button.disabled = true;
+      actionNode.textContent = pending;
+      try {
+        const response = await fetch(`/api/actuators/${deviceId}/override`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "The command was not sent.");
+        actionNode.textContent = done;
+        await refresh();
+      } catch (error) {
+        actionNode.textContent = error.message;
+      } finally {
+        busy = false;
+        for (const button of buttons) button.disabled = false;
+      }
     }
 
     async function sendCommand(command) {
@@ -181,24 +518,35 @@
     }
 
     async function refresh() {
-      const [health, tank, incidents, notifications, history, stats] = await Promise.all([
+      const [health, tank, incidents, notifications, history, stats, focus, climate, focusIncidents, climateIncidents, luxHistory, tempHistory] = await Promise.all([
         fetch("/api/health").then((r) => r.json()),
         fetch("/api/tanks/tank_roof_01").then((r) => r.json()),
         fetch("/api/incidents?tankId=tank_roof_01").then((r) => r.json()),
         fetch("/api/notifications?homeId=home_001").then((r) => r.json()),
         fetch("/api/telemetry?deviceId=tank_level_roof_01&limit=30").then((r) => r.json()),
-        fetch("/api/incidents/stats").then((r) => r.json()),
+        fetch("/api/incidents/stats?tankId=tank_roof_01").then((r) => r.json()),
+        fetch("/api/subsystems/focus_desk_01").then((r) => r.json()),
+        fetch("/api/subsystems/climate_living_01").then((r) => r.json()),
+        fetch("/api/incidents?subsystemId=focus_desk_01").then((r) => r.json()),
+        fetch("/api/incidents?subsystemId=climate_living_01").then((r) => r.json()),
+        fetch("/api/telemetry?deviceId=ambient_light_01&limit=30").then((r) => r.json()),
+        fetch("/api/telemetry?deviceId=room_temp_01&limit=30").then((r) => r.json()),
       ]);
       const current = tank.current || {};
       const level = current.level_pct;
       litresEl.textContent = showNumber(current.litres_in_tank, " L");
       levelEl.textContent = level === null || level === undefined ? "--%" : `${level}% full`;
-      barEl.style.width = `${level || 0}%`;
+      barEl.style.height = `${level || 0}%`;
+      setRing("level-ring", level);
+      setText("fill-pct", level === null || level === undefined ? "--%" : `${level}%`);
       etaEl.textContent = current.minutes_to_cutoff === null || current.minutes_to_cutoff === undefined
         ? ""
         : `${current.minutes_to_cutoff} min until the 98% cutoff · ${current.litres_to_cutoff} L still to fill`;
       setBanner(Number(level), current.pump_state);
       pumpEl.textContent = current.pump_state || "--";
+      pumpEl.classList.toggle("hot", current.pump_state === "on");
+      offBtn.classList.toggle("is-on", current.pump_state === "off");
+      onBtn.classList.toggle("is-on", current.pump_state === "on");
       flowEl.textContent = showNumber(current.flow_rate_lpm, " L/min");
       sourceEl.textContent = current.water_present === null || current.water_present === undefined ? "--" : current.water_present ? "present" : "absent";
       runtimeEl.textContent = showNumber(current.runtime_seconds, " s");
@@ -224,7 +572,7 @@
       totalsEl.textContent = counts ? `${counts} · ${cutoffText}` : cutoffText;
 
       notesEl.innerHTML = "";
-      for (const note of notifications.slice(0, 6)) {
+      for (const note of notifications.slice(0, 14)) {
         const item = document.createElement("li");
         item.className = cssClass(note.severity);
         const mark = note.channel === "telegram" && note.delivered ? "sent on Telegram" : "on this page";
@@ -249,7 +597,6 @@
         if (incident.open && !incident.acknowledged_at) {
           const button = document.createElement("button");
           button.type = "button";
-          button.className = "quiet";
           button.textContent = "Acknowledge";
           button.addEventListener("click", () => acknowledge(incident.incident_id, button));
           item.appendChild(button);
@@ -261,11 +608,84 @@
         item.textContent = "No incidents yet.";
         listEl.appendChild(item);
       }
+      const focusCurrent = focus.current || {};
+      const modeLabel = focusCurrent.mode === "study" ? "Study" : focusCurrent.mode === "off" ? "Off" : "--";
+      document.getElementById("lamp-mode").textContent = modeLabel;
+      document.getElementById("lamp-detail").textContent = focusCurrent.present
+        ? "Someone is at the desk."
+        : focusCurrent.present === false
+          ? "The desk is empty."
+          : "Waiting for the desk…";
+      document.getElementById("presence").textContent = focusCurrent.present === null || focusCurrent.present === undefined ? "--" : focusCurrent.present ? "yes" : "no";
+      document.getElementById("lux").textContent = showNumber(focusCurrent.lux, " lux");
+      document.getElementById("lamp-state").textContent = focusCurrent.lamp_state || "--";
+      document.getElementById("kelvin").textContent = showNumber(focusCurrent.color_temp_k, " K");
+      document.getElementById("brightness").textContent = showNumber(focusCurrent.brightness_pct, "%");
+      setRing("brightness-ring", focusCurrent.brightness_pct);
+      document.querySelector(".scene-desk")?.classList.toggle("lit", focusCurrent.mode === "study" || focusCurrent.lamp_state === "on");
+      studyBtn.classList.toggle("is-on", focusCurrent.mode === "study");
+      lampOffBtn.classList.toggle("is-on", focusCurrent.lamp_state === "off" || focusCurrent.mode === "off");
+      if (focusCurrent.present !== null && focusCurrent.present !== undefined) setFocusBanner(focusCurrent);
+      fillHistory(
+        document.getElementById("lux-history"),
+        [...(Array.isArray(luxHistory) ? luxHistory : [])].reverse(),
+        (point) => Number(point.reading?.lux) || 0,
+        (value) => `${value} lux`
+      );
+      fillIncidents(document.getElementById("focus-incidents"), focusIncidents);
+
+      const climateCurrent = climate.current || {};
+      document.getElementById("temp").textContent = climateCurrent.temp_c === null || climateCurrent.temp_c === undefined ? "--°C" : `${climateCurrent.temp_c}°C`;
+      document.getElementById("hvac").textContent = climateCurrent.hvac_state || "--";
+      document.getElementById("hvac-detail").textContent = climateCurrent.hvac_state === "cooling"
+        ? "The air conditioner is cooling."
+        : climateCurrent.hvac_state === "off"
+          ? "The air conditioner is off."
+          : "Waiting for the room…";
+      const tempValue = Number(climateCurrent.temp_c);
+      if (!Number.isNaN(tempValue)) {
+        setRing("temp-ring", ((tempValue - 16) / 20) * 100);
+        const thermo = document.getElementById("thermo");
+        if (thermo) thermo.style.height = `${Math.max(8, Math.min(100, ((tempValue - 16) / 20) * 100))}%`;
+      }
+      document.querySelector(".scene-air")?.classList.toggle("cooling", climateCurrent.hvac_state === "cooling");
+      coolBtn.classList.toggle("is-on", climateCurrent.hvac_state === "cooling");
+      hvacOffBtn.classList.toggle("is-on", climateCurrent.hvac_state === "off");
+      if (climateCurrent.temp_c !== null && climateCurrent.temp_c !== undefined) setClimateBanner(climateCurrent);
+      fillHistory(
+        document.getElementById("temp-history"),
+        [...(Array.isArray(tempHistory) ? tempHistory : [])].reverse(),
+        (point) => Number(point.reading?.temp_c) || 0,
+        (value) => `${value}°C`
+      );
+      fillIncidents(document.getElementById("climate-incidents"), climateIncidents);
+
+      setText("home-level", level === null || level === undefined ? "--" : `${level}%`);
+      setText("home-lamp", modeLabel);
+      setText("home-temp", climateCurrent.temp_c === null || climateCurrent.temp_c === undefined ? "--" : `${climateCurrent.temp_c}°`);
+      setText("home-alerts", String(Array.isArray(notifications) ? notifications.length : 0));
       statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt} · Telegram ${health.telegram}`;
     }
 
+    function openView(name) {
+      const home = document.getElementById("view-home");
+      home.hidden = name !== "home";
+      for (const sheet of document.querySelectorAll(".sheet")) {
+        sheet.hidden = sheet.dataset.sheet !== name;
+      }
+      document.getElementById("collage").dataset.view = name;
+    }
+
+    document.querySelectorAll("[data-open]").forEach((el) => {
+      el.addEventListener("click", () => openView(el.dataset.open));
+    });
+
     offBtn.addEventListener("click", () => sendCommand("off"));
     onBtn.addEventListener("click", () => sendCommand("on"));
+    studyBtn.addEventListener("click", () => sendActuator("desk_lamp_01", "study", [studyBtn, lampOffBtn], focusActionEl, "Setting study light…", "Study light command sent."));
+    lampOffBtn.addEventListener("click", () => sendActuator("desk_lamp_01", "off", [studyBtn, lampOffBtn], focusActionEl, "Switching the lamp off…", "Lamp off command sent."));
+    coolBtn.addEventListener("click", () => sendActuator("hvac_living_01", "cool", [coolBtn, hvacOffBtn], climateActionEl, "Starting cooling…", "Cooling command sent."));
+    hvacOffBtn.addEventListener("click", () => sendActuator("hvac_living_01", "off", [coolBtn, hvacOffBtn], climateActionEl, "Switching cooling off…", "Cooling off command sent."));
     refresh().catch((error) => {
       statusEl.textContent = error.message;
     });

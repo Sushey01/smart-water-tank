@@ -83,6 +83,45 @@ export const scenarios = {
       state.level_pct = Math.min(99, +(state.level_pct + 0.2).toFixed(1));
     },
   },
+  study: {
+    room: "focus",
+    ignoreCommand: false,
+    create() {
+      return {
+        ticks: 0,
+        present: false,
+        lux: 140,
+        lamp: "off",
+        mode: "off",
+        color_temp_k: 0,
+        brightness_pct: 0,
+      };
+    },
+    step(state) {
+      state.ticks += 1;
+      if (state.ticks === 4) {
+        state.present = true;
+        if (state.lamp !== "on") state.lux = 80;
+      }
+      if (state.ticks === 14) {
+        state.present = false;
+      }
+    },
+  },
+  cool: {
+    room: "climate",
+    ignoreCommand: false,
+    create() {
+      return { temp_c: 27, hvac: "off" };
+    },
+    step(state) {
+      if (state.hvac === "cooling") {
+        state.temp_c = Math.max(24, +(state.temp_c - 0.5).toFixed(1));
+        return;
+      }
+      state.temp_c = Math.min(32, +(state.temp_c + 0.6).toFixed(1));
+    },
+  },
   fault: {
     ignoreCommand: true,
     create() {

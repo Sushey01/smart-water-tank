@@ -1,7 +1,7 @@
 {
   "name": "smart-water-tank",
   "version": "1.0.0",
-  "description": "Household water tank monitoring and overflow prevention for CMP6207",
+  "description": "Household water tank, study desk, and climate automations for CMP6207",
   "type": "module",
   "scripts": {
     "dev": "node backend/src/index.js",

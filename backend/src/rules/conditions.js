@@ -1,4 +1,4 @@
-import { Telemetry } from "../models/index.js";
+import { modelsFor } from "../db.js";
 
 const MAX_SKEW_MS = 400;
 
@@ -55,7 +55,7 @@ export async function isPumpFailure(latests, tankId) {
   if (motor !== "on" || present !== true || !(flow <= 0.2)) {
     return false;
   }
-  const levels = await Telemetry.find({ tank_id: tankId, device_type: "tank_level" })
+  const levels = await modelsFor("water_tank").Telemetry.find({ tank_id: tankId, device_type: "tank_level" })
     .sort({ timestamp: -1 })
     .limit(2)
     .lean();

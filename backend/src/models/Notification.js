@@ -5,7 +5,8 @@ const notificationSchema = new mongoose.Schema(
     notification_id: { type: String, required: true, unique: true },
     incident_id: { type: String, required: true },
     home_id: { type: String, required: true },
-    tank_id: { type: String, required: true },
+    subsystem_id: { type: String },
+    tank_id: { type: String },
     severity: { type: String, required: true },
     message: { type: String, required: true },
     channel: { type: String, required: true },
@@ -16,4 +17,4 @@ const notificationSchema = new mongoose.Schema(
   { versionKey: false, collection: "notifications" }
 );
 
-export const Notification = mongoose.model("Notification", notificationSchema);
+export { notificationSchema };

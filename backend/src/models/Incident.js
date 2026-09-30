@@ -4,7 +4,8 @@ const incidentSchema = new mongoose.Schema(
   {
     incident_id: { type: String, required: true, unique: true },
     home_id: { type: String, required: true },
-    tank_id: { type: String, required: true },
+    subsystem_id: { type: String },
+    tank_id: { type: String },
     rule_id: { type: String },
     severity: { type: String, required: true },
     origin_severity: { type: String },
@@ -26,4 +27,4 @@ const incidentSchema = new mongoose.Schema(
   { versionKey: false, collection: "incidents" }
 );
 
-export const Incident = mongoose.model("Incident", incidentSchema);
+export { incidentSchema };

@@ -14,14 +14,19 @@ const ruleSchema = new mongoose.Schema(
   {
     rule_id: { type: String, required: true, unique: true },
     home_id: { type: String, required: true },
-    tank_id: { type: String, required: true },
+    subsystem_id: { type: String, required: true },
+    tank_id: { type: String },
     name: { type: String, required: true },
     severity: { type: String, required: true },
     kind: { type: String, default: "threshold" },
     conditions: { type: [conditionSchema], default: [] },
     logic: { type: String, default: "AND" },
     action: {
-      type: { type: String, enum: ["none", "motor_off"], default: "none" },
+      type: {
+        type: String,
+        enum: ["none", "motor_off", "lamp_study", "lamp_off", "hvac_on", "hvac_off"],
+        default: "none",
+      },
       target_device: { type: String },
     },
     escalation: {
@@ -32,4 +37,4 @@ const ruleSchema = new mongoose.Schema(
   { versionKey: false, collection: "automation_rules" }
 );
 
-export const Rule = mongoose.model("Rule", ruleSchema);
+export { ruleSchema };

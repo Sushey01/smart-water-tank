@@ -16,4 +16,4 @@ const tankSchema = new mongoose.Schema(
   { versionKey: false, collection: "tanks" }
 );
 
-export const Tank = mongoose.model("Tank", tankSchema);
+export { tankSchema };

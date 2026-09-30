@@ -19,7 +19,9 @@ This is the CMP6207 project for ioThings: a simulated household tank, MQTT, a No
 
 Litres in the tank, litres left until 98%, and minutes until that cutoff are calculated when the tank is read. They are not stored as their own sensor message.
 
-Left out on purpose: humidity, temperature, turbidity, TDS, a combined level-plus-flow message, an 85% watch tier, a cutoff at 100%, pet climate, the idle-charger plug, several tanks, pump schedules, starting the pump when the tank is low, and real hardware. A mobile app can use this API later.
+Left out on purpose: humidity, turbidity, TDS, a combined level-plus-flow message, an 85% watch tier, a cutoff at 100%, a pet feeder, the idle-charger plug, several tanks, pump schedules, starting the pump when the tank is low, and real hardware. A mobile app can use this API later.
+
+The same home also runs two other automations. `focus_desk_01` watches desk presence and ambient light, and sets the desk lamp to study mode (6500 K, 100% brightness) while someone is sitting. `climate_living_01` watches room temperature and starts the air conditioner above 28°C, then stops it at 26°C. Their incidents use the same `{ w: "majority" }` write as the tank. Telemetry stays `w: 1`.
 
 ## Architecture
 
@@ -35,8 +37,8 @@ The simulator publishes one reading per sensor. Node.js validates it, stores it,
 
 Topics:
 
-- `ioThings/{home_id}/{tank_id}/{device_type}/{device_id}/telemetry`
-- `ioThings/{home_id}/{tank_id}/motor/{device_id}/command` at QoS 1
+- `ioThings/{home_id}/{subsystem_id}/{device_type}/{device_id}/telemetry`
+- `ioThings/{home_id}/{subsystem_id}/{device_type}/{device_id}/command` at QoS 1
 
 Collections: `tanks`, `devices`, `telemetry`, `device_latest`, `automation_rules`, `incidents`, `notifications`.
 

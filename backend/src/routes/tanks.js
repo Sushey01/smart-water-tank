@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Tank } from "../models/index.js";
+import { modelsFor } from "../db.js";
 import { withCurrent } from "../services/tankService.js";
 import { asyncHandler, httpError } from "../middleware/errorHandler.js";
 
@@ -8,6 +8,7 @@ const router = Router();
 router.get(
   "/",
   asyncHandler(async (req, res) => {
+    const { Tank } = modelsFor("water_tank");
     const filter = req.query.homeId ? { home_id: req.query.homeId } : {};
     const tanks = await Tank.find(filter).lean();
     const withState = await Promise.all(tanks.map((tank) => withCurrent(tank)));
@@ -18,6 +19,7 @@ router.get(
 router.post(
   "/",
   asyncHandler(async (req, res) => {
+    const { Tank } = modelsFor("water_tank");
     const { tank_id, home_id, capacity_litres, motor_device_id } = req.body;
     if (!tank_id || !home_id || capacity_litres === undefined || !motor_device_id) {
       throw httpError(400, "tank_id, home_id, capacity_litres, and motor_device_id are required");
@@ -34,6 +36,7 @@ router.post(
 router.get(
   "/:tankId",
   asyncHandler(async (req, res) => {
+    const { Tank } = modelsFor("water_tank");
     const tank = await Tank.findOne({ tank_id: req.params.tankId }).lean();
     if (!tank) {
       throw httpError(404, "Tank not found");
@@ -45,6 +48,7 @@ router.get(
 router.put(
   "/:tankId",
   asyncHandler(async (req, res) => {
+    const { Tank } = modelsFor("water_tank");
     const tank = await Tank.findOneAndUpdate(
       { tank_id: req.params.tankId },
       { $set: req.body },
@@ -60,6 +64,7 @@ router.put(
 router.delete(
   "/:tankId",
   asyncHandler(async (req, res) => {
+    const { Tank } = modelsFor("water_tank");
     const tank = await Tank.findOneAndDelete({ tank_id: req.params.tankId }).lean();
     if (!tank) {
       throw httpError(404, "Tank not found");
