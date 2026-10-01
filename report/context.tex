@@ -1,0 +1,96 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+
+\title{CMP6207 report context\\[0.4em]\large Household automations on MongoDB replica set \texttt{rs0}}
+\author{Shekhar Lamichhane}
+\date{30 September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+This note is the writing brief for the CMP6207 report. The started report is \texttt{report.tex}. The talk is \texttt{slides.pptx}. The submission is one simulated home, three automations, MQTT, a Node.js rule engine, and MongoDB replica set \texttt{rs0}. The report target is about 4{,}000 words.
+\end{abstract}
+
+\section{What was built}
+
+One Node.js process serves home \texttt{home\_001}. Simulated sensors publish on MQTT. The API validates each reading, stores it, updates the latest value, and runs the rules. Commands return on MQTT. The status page and Telegram talk only to the API.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llp{6.4cm}@{}}
+\toprule
+Database & Subsystem & Behaviour \\
+\midrule
+\texttt{smart\_water} & \texttt{tank\_roof\_01} & 1000~L roof tank. Warn at 90\% with the pump on. Pump off at 98\%. Dry-run, pump failure, abnormal flow, and low tank at 15\%. \\
+\texttt{smart\_focus} & \texttt{focus\_desk\_01} & Desk presence. Lamp at 6500~K and 100\% brightness while someone is sitting. Lamp off when the desk is empty. \\
+\texttt{smart\_climate} & \texttt{climate\_living\_01} & Cooling starts above 28\textdegree C and stops at 26\textdegree C. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All three databases use the same replica set \texttt{rs0} on ports 27017, 27018, and 27019. The set is already initialised. Telemetry and \texttt{device\_latest} use write concern \texttt{w:1}. Incidents use \texttt{w:"majority"}. The rule engine reads from the primary. \texttt{smart\_water} also keeps \texttt{tanks}. Water documents still carry \texttt{tank\_id}. Every automation document carries \texttt{subsystem\_id}.
+
+\section{Facts that stay fixed}
+
+\begin{itemize}
+\item Telemetry topic:\\
+\texttt{ioThings/\{home\}/\{subsystem\}/\{device\_type\}/\{device\_id\}/telemetry}
+\item Command topic: the same path ending in \texttt{/command}, at QoS~1.
+\item Water devices are level, flow, pump state, and inlet presence. The inlet sensor separates a dry pump from a broken pump.
+\item Litres in the tank are calculated when the tank is read. They are not stored as their own sensor message.
+\item Litres saved on cutoff is flow in litres per minute times 20. The overflow scenario uses 15~L/min, so the recorded save is 300~L.
+\item A multi-sensor rule runs only when the readings it needs were updated together.
+\item The engine does not open a second incident for a rule that already has an open incident.
+\item Telegram is sent only when the bot token is the full BotFather value and the chat id is the person's own id. The API reads \texttt{.env} only at startup.
+\item A phone app, real hardware, a pet feeder, pump schedules, and starting the pump on a low tank were left out on purpose.
+\end{itemize}
+
+\section{Word budget}
+
+\begin{center}
+\begin{tabular}{@{}lrp{8.4cm}@{}}
+\toprule
+Section & Words & Job \\
+\midrule
+Introduction & 400 & The household problem and what was built. \\
+NoSQL appraisal & 700 & Document model against a relational schema for this workload. \\
+Architecture & 500 & MQTT, the API, the rule engine, and the status page. \\
+Replica set & 600 & \texttt{rs0}, write concern, and the failover test still to record. \\
+Data model and rules & 700 & Collections and the water, desk, and climate rules. \\
+Demonstration & 700 & Scenarios, notifications, and observed results. \\
+Evaluation and conclusion & 400 & What the design is good at, and what is still simulated. \\
+\midrule
+Total & 4000 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Evidence still to save}
+
+Put screenshots in \texttt{evidence/} before the final PDF. Do not invent the figures.
+
+\begin{itemize}
+\item \texttt{rs.status()} with one primary and two secondaries.
+\item One document from each collection.
+\item Overflow: a warning, then the pump off at 98\%.
+\item Dry-run, pump failure, abnormal flow, and a confirmed fault after 30 seconds.
+\item One \texttt{study} notification and one \texttt{cool} notification.
+\item A notification that was delivered on Telegram.
+\item Failover: stop the primary during an overflow, record the election, show the cutoff incident still stored, then bring the node back.
+\end{itemize}
+
+\section{How to run a case while writing}
+
+From the project root, with the replica set already up: \texttt{npm run seed}, then \texttt{npm run dev}. In a second terminal run one of \texttt{npm run simulate -- overflow}, \texttt{study}, or \texttt{cool}. \texttt{cool} changes only the living room. The tank and the desk stay on their last stored readings until their own simulators run. Stop \texttt{cool} with Ctrl+C so cooling alerts do not repeat.
+
+\end{document}
