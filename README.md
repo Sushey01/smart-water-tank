@@ -43,43 +43,41 @@ npm run simulate -- cool
 
 `fault` ignores the off command. After 30 seconds the open cutoff incident is marked `confirmed_fault`.
 
-## Recreate the database from scratch
+## Free the database ports now, recreate later
 
-Use this when the data is corrupted, you want a fresh demo, or someone else clones the repo and needs their own database. Wiping deletes all telemetry, incidents, and notifications, and anything under `evidence/` captured against the old data no longer matches.
+This project runs a three-node MongoDB replica set on ports 27017, 27018, and 27019. To use those ports in another project, stop this project's database nodes and remove their data. Stopping `mongod` releases the ports; deleting the data folders permanently removes this project's databases, telemetry, incidents, and notifications. Do not delete `mongodb/config`, `mongodb/logs`, or `scripts`.
+
+### Free the ports
+
+Stop the API and simulator with Ctrl+C in their terminals, then run:
 
 ```bash
-# 1. Stop the API and any simulator first (Ctrl+C in those terminals),
-#    then stop the three database nodes:
 bash scripts/replica-down.sh
-
-# 2. Delete the data folders only (scripts/ stays untouched):
 rm -rf mongodb/node1/data mongodb/node2/data mongodb/node3/data
+```
 
-# 3. Start the nodes again (the script recreates the folders itself):
+The MongoDB ports are now available for the other project. You can leave the other project running; these steps do not change its data.
+
+### Recreate this project's database later
+
+After the other project no longer uses ports 27017, 27018, and 27019, run the following from this repository. The replica-set initiation command is for the newly emptied data folders; do not run it on an already-initialized set.
+
+```bash
 bash scripts/replica-up.sh
-
-# 4. Initiate the replica set exactly once, with the command the script prints:
 mongosh --port 27017 --eval 'rs.initiate({_id:"rs0", members:[{_id:0,host:"127.0.0.1:27017"},{_id:1,host:"127.0.0.1:27018"},{_id:2,host:"127.0.0.1:27019"}]})'
-
-# 5. Check one node is PRIMARY and two are SECONDARY before continuing:
 bash scripts/replica-status.sh
+```
 
-# 6. Configure and seed (Telegram fields optional):
-cp .env.example .env
+Confirm the status output shows one `PRIMARY` and two `SECONDARY` nodes, then create `.env` from the example only if you do not already have one, and seed the application:
+
+```bash
+test -f .env || cp .env.example .env
 npm install
 npm run seed
-
-# 7. Run:
 npm run dev
 ```
 
-Notes:
-
-- Never run `rs.initiate` on a set that is already initialised. If the configuration is broken, wipe the data folders and start over instead.
-- `npm run seed` is safe to re-run. It upserts the tank, devices, and rules, so seeding twice changes nothing.
-- Ports 27017, 27018, 27019, 1883, and 3000 must be free before starting.
-- If seeding fails with an out-of-disk error on a nearly-full disk, free space first. MongoDB refuses index builds below its free-disk floor.
-- After a wipe, re-capture any evidence you still need. Old screenshots belong to the deleted data.
+`replica-up.sh` recreates the data folders. Keep the replica-set initiation step for this fresh database only. `npm run seed` is safe to re-run because it upserts the initial records. After deleting the data, re-capture any evidence you still need; existing evidence and screenshots refer to the deleted database contents. Ports 27017, 27018, 27019, 1883, and 3000 must be free when starting the full application.
 
 ## API
 
