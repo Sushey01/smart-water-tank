@@ -1,0 +1,55 @@
+{
+    "_id": "6abd448696714d8ce53cd191",
+    "incident_id": "inc_1790788742795",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "rule_id": "rule_overflow_roof",
+    "severity": "confirmed_fault",
+    "origin_severity": "overflow_prevented",
+    "triggered_at": "2026-09-30T17:19:02.795Z",
+    "triggered_by": [
+        {
+            "device_id": "source_roof_01",
+            "device_type": "source_presence",
+            "value": {
+                "water_present": true
+            }
+        },
+        {
+            "device_id": "motor_roof_01",
+            "device_type": "motor_state",
+            "value": {
+                "state": "on",
+                "runtime_seconds": 2
+            }
+        },
+        {
+            "device_id": "water_flow_roof_01",
+            "device_type": "water_flow",
+            "value": {
+                "flow_rate_lpm": 15,
+                "cumulative_litres": 0.75,
+                "direction": "inflow"
+            }
+        },
+        {
+            "device_id": "tank_level_roof_01",
+            "device_type": "tank_level",
+            "value": {
+                "level_pct": 98,
+                "level_cm": 147
+            }
+        }
+    ],
+    "action_taken": {
+        "type": "motor_off",
+        "target_device": "motor_roof_01",
+        "status": "pending"
+    },
+    "escalated": true,
+    "open": true,
+    "litres_saved": 300,
+    "assumed_unattended_minutes": 20,
+    "flow_rate_lpm_at_trigger": 15
+}

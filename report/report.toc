@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Types of NoSQL Databases and Selection of MongoDB}{3}{section.2}%
+\contentsline {section}{\numberline {3}Relational and NoSQL Database Comparison}{5}{section.3}%
+\contentsline {section}{\numberline {4}System Architecture}{6}{section.4}%
+\contentsline {section}{\numberline {5}NoSQL Database Design}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Dataset and Device Fleet}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Document Structure}{8}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Implementation}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}End-to-End Runtime Flow}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Software Installation and Commands}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Implementation Evidence Screenshots}{10}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Data Management}{10}{section.7}%
+\contentsline {section}{\numberline {8}REST API, Swagger and Dashboard}{11}{section.8}%
+\contentsline {subsection}{\numberline {8.1}API Design}{11}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Dashboard Design}{11}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Testing}{11}{section.9}%
+\contentsline {section}{\numberline {10}Distribution and Clustering}{12}{section.10}%
+\contentsline {section}{\numberline {11}Security, Operations and Future Work}{13}{section.11}%
+\contentsline {section}{\numberline {12}Conclusion}{13}{section.12}%

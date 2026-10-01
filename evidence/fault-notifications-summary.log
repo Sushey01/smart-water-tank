@@ -1,0 +1,3 @@
+RETURNED: 50 MATCHING_FAULT: 2
+ntf_1790788773963 confirmed_fault | Roof tank fault: the pump was told to stop and is still on. | ch: telegram
+ntf_1790788743233 overflow_prevented | Roof tank cutoff: level is 98%. The pump was switched off. | ch: telegram

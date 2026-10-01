@@ -4,6 +4,8 @@ One home with three automations. The rooftop tank warns at 90% and switches the 
 
 The status page shows litres in the tank and, while the pump is on and water is flowing, the minutes left until the 98% cutoff. From 90% to 98% the person can press Off. If they do not, the rule still switches the pump off at 98%. A phone app is optional and is not part of this build. Telegram is the notice when the bot token and the person's own chat id are set.
 
+Press **Sound on** once in the top bar. Browsers will not play audio until that click. After that, a new fault (overflow, dry-run, pump failure, abnormal flow, or confirmed fault) plays a siren and flashes the panel. A warning plays two short tones. Other notices, such as study mode or cooling, play one soft tone. **Sound off** keeps the banner and stops the noise. The first load does not replay old alerts.
+
 ## Run
 
 The replica set is already on ports 27017, 27018, and 27019. `npm run dev` starts an MQTT broker on port 1883 when that port is free. If Mosquitto is already running there, the app uses it instead.

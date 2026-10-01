@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { startBroker } from "./broker.js";
-import { connectDb, databaseStatus } from "./db.js";
+import { connectDb, databaseStatus, findMerged } from "./db.js";
 import { startIngest } from "./ingest.js";
 import { asyncHandler, errorHandler } from "./middleware/errorHandler.js";
 import { connectMqtt, isMqttConnected } from "./mqtt.js";
@@ -34,6 +34,7 @@ app.get(
       mqtt: isMqttConnected() ? "connected" : "disconnected",
       replicaSet: "rs0",
       telegram: telegramConfigStatus(),
+      telegram_last: await latestTelegramOutcome(),
     });
   })
 );
@@ -49,6 +50,15 @@ app.use("/api/motors", motorRoutes);
 app.use("/api/actuators", actuatorRoutes);
 app.use(express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), "public")));
 app.use(errorHandler);
+
+async function latestTelegramOutcome() {
+  const notes = await findMerged("Notification", {}, { sort: { created_at: -1 }, limit: 1 });
+  const note = notes[0];
+  if (!note) return "none";
+  if (note.channel === "telegram" && note.delivered) return "sent";
+  if (note.channel === "telegram" && !note.delivered) return "failed";
+  return "not_sent";
+}
 
 function telegramConfigStatus() {
   const token = process.env.TELEGRAM_BOT_TOKEN || "";

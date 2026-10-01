@@ -1,0 +1,18 @@
+[
+  {
+    notification_id: 'ntf_1790788743233',
+    severity: 'overflow_prevented',
+    message: 'Roof tank cutoff: level is 98%. The pump was switched off.',
+    channel: 'telegram',
+    delivered: true,
+    created_at: ISODate('2026-09-30T17:19:03.233Z')
+  },
+  {
+    notification_id: 'ntf_1790788773963',
+    severity: 'confirmed_fault',
+    message: 'Roof tank fault: the pump was told to stop and is still on.',
+    channel: 'telegram',
+    delivered: true,
+    created_at: ISODate('2026-09-30T17:19:33.963Z')
+  }
+]

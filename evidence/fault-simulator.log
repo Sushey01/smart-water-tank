@@ -1,0 +1,56 @@
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> smart-water-tank@1.0.0 simulate
+> node simulator/src/simulator.js fault
+
+Simulator 'fault' publishing to Mosquitto
+fault level=94% pump=on flow=15 source=true
+fault level=96% pump=on flow=15 source=true
+fault level=98% pump=on flow=15 source=true
+Ignored pump command 'off'
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true
+fault level=99% pump=on flow=15 source=true

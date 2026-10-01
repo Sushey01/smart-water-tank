@@ -1,0 +1,11 @@
+{
+  "mongo": "connected",
+  "databases": {
+    "smart_water": "connected",
+    "smart_focus": "connected",
+    "smart_climate": "connected"
+  },
+  "mqtt": "connected",
+  "replicaSet": "rs0",
+  "telegram": "REDACTED"
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "6abd44a596714d8ce53cdba2",
+    "notification_id": "ntf_1790788773963",
+    "incident_id": "inc_1790788742795",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "severity": "confirmed_fault",
+    "message": "Roof tank fault: the pump was told to stop and is still on.",
+    "channel": "telegram",
+    "delivered": true,
+    "error": "",
+    "created_at": "2026-09-30T17:19:33.963Z"
+  },
+  {
+    "_id": "6abd448796714d8ce53cd1ae",
+    "notification_id": "ntf_1790788743233",
+    "incident_id": "inc_1790788742795",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "severity": "overflow_prevented",
+    "message": "Roof tank cutoff: level is 98%. The pump was switched off.",
+    "channel": "telegram",
+    "delivered": true,
+    "error": "",
+    "created_at": "2026-09-30T17:19:03.233Z"
+  }
+]

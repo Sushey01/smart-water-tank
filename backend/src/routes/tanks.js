@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { modelsFor } from "../db.js";
+import { blockedAlert } from "../rules/engine.js";
 import { withCurrent } from "../services/tankService.js";
 import { asyncHandler, httpError } from "../middleware/errorHandler.js";
 
@@ -11,7 +12,10 @@ router.get(
     const { Tank } = modelsFor("water_tank");
     const filter = req.query.homeId ? { home_id: req.query.homeId } : {};
     const tanks = await Tank.find(filter).lean();
-    const withState = await Promise.all(tanks.map((tank) => withCurrent(tank)));
+    const withState = await Promise.all(tanks.map(async (tank) => ({
+      ...(await withCurrent(tank)),
+      blocked: await blockedAlert(tank.tank_id),
+    })));
     res.json(withState);
   })
 );
@@ -41,7 +45,7 @@ router.get(
     if (!tank) {
       throw httpError(404, "Tank not found");
     }
-    res.json(await withCurrent(tank));
+    res.json({ ...(await withCurrent(tank)), blocked: await blockedAlert(tank.tank_id) });
   })
 );
 

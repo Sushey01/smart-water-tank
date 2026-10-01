@@ -1,0 +1,161 @@
+TOTAL_INCIDENTS:100
+CONFIRMED_FAULT_COUNT:0
+[
+  {
+    "_id": "6abd443096714d8ce53cb11b",
+    "incident_id": "inc_1790788656352",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "rule_id": "rule_overflow_roof",
+    "severity": "overflow_prevented",
+    "origin_severity": "overflow_prevented",
+    "triggered_at": "2026-09-30T17:17:36.352Z",
+    "triggered_by": [
+      {
+        "device_id": "source_roof_01",
+        "device_type": "source_presence",
+        "value": {
+          "water_present": true
+        }
+      },
+      {
+        "device_id": "motor_roof_01",
+        "device_type": "motor_state",
+        "value": {
+          "state": "on",
+          "runtime_seconds": 34
+        }
+      },
+      {
+        "device_id": "water_flow_roof_01",
+        "device_type": "water_flow",
+        "value": {
+          "flow_rate_lpm": 15,
+          "cumulative_litres": 8.75,
+          "direction": "inflow"
+        }
+      },
+      {
+        "device_id": "tank_level_roof_01",
+        "device_type": "tank_level",
+        "value": {
+          "level_pct": 99,
+          "level_cm": 148.5
+        }
+      }
+    ],
+    "action_taken": {
+      "type": "motor_off",
+      "target_device": "motor_roof_01",
+      "status": "success"
+    },
+    "escalated": false,
+    "open": false,
+    "litres_saved": 300,
+    "assumed_unattended_minutes": 20,
+    "flow_rate_lpm_at_trigger": 15,
+    "resolved_at": "2026-09-30T17:17:36.989Z"
+  },
+  {
+    "_id": "6abd442f96714d8ce53cb097",
+    "incident_id": "inc_1790788655529",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "rule_id": "rule_low_water_roof",
+    "severity": "low_water",
+    "origin_severity": "low_water",
+    "triggered_at": "2026-09-30T17:17:35.529Z",
+    "triggered_by": [
+      {
+        "device_id": "source_roof_01",
+        "device_type": "source_presence",
+        "value": {
+          "water_present": true
+        }
+      },
+      {
+        "device_id": "motor_roof_01",
+        "device_type": "motor_state",
+        "value": {
+          "state": "off",
+          "runtime_seconds": 12
+        }
+      },
+      {
+        "device_id": "water_flow_roof_01",
+        "device_type": "water_flow",
+        "value": {
+          "flow_rate_lpm": 0,
+          "cumulative_litres": 2.6,
+          "direction": "inflow"
+        }
+      },
+      {
+        "device_id": "tank_level_roof_01",
+        "device_type": "tank_level",
+        "value": {
+          "level_pct": 15,
+          "level_cm": 22.5
+        }
+      }
+    ],
+    "action_taken": {
+      "type": "none",
+      "target_device": "motor_roof_01",
+      "status": "cleared"
+    },
+    "escalated": false,
+    "open": false,
+    "litres_saved": 0,
+    "assumed_unattended_minutes": 0,
+    "flow_rate_lpm_at_trigger": 0,
+    "resolved_at": "2026-09-30T17:17:36.234Z"
+  },
+  {
+    "_id": "6abd442e96714d8ce53cb035",
+    "incident_id": "inc_1790788654851",
+    "home_id": "home_001",
+    "subsystem_id": "tank_roof_01",
+    "tank_id": "tank_roof_01",
+    "rule_id": "rule_overflow_roof",
+    "severity": "overflow_prevented",
+    "origin_severity": "overflow_prevented",
+    "triggered_at": "2026-09-30T17:17:34.851Z",
+    "triggered_by": [
+      {
+        "device_id": "source_roof_01",
+        "device_type": "source_presence",
+        "value": {
+          "water_present": true
+        }
+      },
+      {
+        "device_id": "motor_roof_01",
+        "device_type": "motor_state",
+        "value": {
+          "state": "on",
+          "runtime_seconds": 33
+        }
+      },
+      {
+        "device_id": "water_flow_roof_01",
+        "device_type": "water_flow",
+        "value": {
+          "flow_rate_lpm": 15,
+          "cumulative_litres": 8.5,
+          "direction": "inflow"
+        }
+      },
+      {
+        "device_id": "tank_level_roof_01",
+        "device_type": "tank_level",
+        "value": {
+          "level_pct": 99,
+          "level_cm": 148.5
+        }
+      }
+    ],
+    "action_taken": {
+      "type": "motor_

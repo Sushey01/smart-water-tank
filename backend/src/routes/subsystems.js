@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { findMerged, modelsFor, resolveSubsystem } from "../db.js";
+import { blockedAlert } from "../rules/engine.js";
 import { asyncHandler, httpError } from "../middleware/errorHandler.js";
 
 const router = Router();
@@ -32,7 +33,11 @@ function currentFor(subsystem, latests) {
 async function withCurrent(subsystem) {
   const { DeviceLatest } = modelsFor(subsystem.type);
   const latests = await DeviceLatest.find({ subsystem_id: subsystem.subsystem_id }).lean();
-  return { ...subsystem, current: currentFor(subsystem, latests) };
+  return {
+    ...subsystem,
+    current: currentFor(subsystem, latests),
+    blocked: await blockedAlert(subsystem.subsystem_id),
+  };
 }
 
 router.get(

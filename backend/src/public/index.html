@@ -16,6 +16,14 @@
     .links { display: flex; gap: 1.4rem; font-size: 0.95rem; align-items: center; }
     .links button { background: transparent; color: var(--ink); border: 0; padding: 0.2rem; }
     .links button:hover { color: var(--orange); }
+    .links .sound { border: 1px solid #c4b4a4; background: #fff; color: var(--ink); border-radius: 999px; padding: 0.35rem 0.8rem; }
+    .links .sound[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: #fff; }
+    .siren { margin: 0 4vw 0.6rem; padding: 0.75rem 1rem; border-radius: 12px; background: #8d1d1d; color: #fff; display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+    .siren[hidden] { display: none !important; }
+    .siren.warn { background: #8a5a00; }
+    .siren.ok { background: #1d6b3a; }
+    body.alarm .collage { box-shadow: 0 0 0 3px #c43838; animation: siren-pulse 0.8s ease-in-out infinite; }
+    @keyframes siren-pulse { 50% { box-shadow: 0 0 0 6px rgba(196, 56, 56, 0.35); } }
     .stage { padding: 0.4rem 4vw 2.2rem; }
     .collage { position: relative; border-radius: 22px; overflow: hidden; min-height: 78vh; background: radial-gradient(circle at 78% 12%, #2c261f 0%, #161411 46%, #0d0c0b 100%); color: #f6f1ea; }
     .collage[data-view="home"] { background: radial-gradient(ellipse at 50% 0%, #f0d7b0 0%, #d7b48a 28%, #b88962 62%, #9a704c 100%); color: var(--ink); }
@@ -70,6 +78,7 @@
     .banner { margin: 0.8rem 0 0; padding: 0.65rem 0.75rem; border-radius: 10px; background: rgba(232,135,58,0.18); color: #ffd7b0; }
     .banner.bad { background: rgba(176, 48, 48, 0.28); color: #ffc7c7; }
     .banner.ok { background: rgba(46, 130, 84, 0.24); color: #c9f0d6; }
+    .blocked-note { margin: 0.6rem 0 0; color: #ffc56b; }
     .stat { min-height: 96px; display: flex; flex-direction: column; justify-content: flex-end; }
     .stat > span, .chart-card h3, .notes-card h3 { margin: 0; color: rgba(246,241,234,0.58); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
     .stat strong { display: block; margin-top: 0.3rem; font-size: 1.35rem; font-weight: 600; }
@@ -123,8 +132,10 @@
       <button type="button" data-open="light">Light</button>
       <button type="button" data-open="climate">Climate</button>
       <button type="button" data-open="alerts">Alerts</button>
+      <button type="button" id="sound" class="sound" aria-pressed="false">Sound off</button>
     </div>
   </nav>
+  <p class="siren" id="siren" hidden><strong id="siren-label">Siren</strong><span id="siren-text"></span></p>
   <div class="stage" id="top">
     <div class="collage" id="collage" data-view="home">
       <div class="hero-grid" id="view-home">
@@ -169,6 +180,7 @@
                 <p class="sub" id="level">--%</p>
                 <p class="sub" id="eta"></p>
                 <p class="banner" id="banner" hidden></p>
+                <p class="blocked-note" id="water-blocked" hidden></p>
               </div>
             </section>
             <section class="panel chart-card">
@@ -213,6 +225,7 @@
                 <p class="level" id="lamp-mode">--</p>
                 <p class="sub" id="lamp-detail">Waiting for the desk…</p>
                 <p class="banner" id="focus-banner" hidden></p>
+                <p class="blocked-note" id="focus-blocked" hidden></p>
               </div>
             </section>
             <section class="panel chart-card">
@@ -255,6 +268,7 @@
                 <p class="level" id="temp">--°C</p>
                 <p class="sub" id="hvac-detail">Waiting for the room…</p>
                 <p class="banner" id="climate-banner" hidden></p>
+                <p class="blocked-note" id="climate-blocked" hidden></p>
               </div>
             </section>
             <section class="panel chart-card">
@@ -293,6 +307,7 @@
             </div>
           </div>
           <section class="panel notes-card">
+            <p class="blocked-note" id="alerts-blocked" hidden></p>
             <ul class="feed" id="notifications"></ul>
           </section>
         </div>
@@ -326,7 +341,127 @@
     const hvacOffBtn = document.getElementById("hvac-off");
     const focusActionEl = document.getElementById("focus-action");
     const climateActionEl = document.getElementById("climate-action");
+    const soundBtn = document.getElementById("sound");
+    const sirenEl = document.getElementById("siren");
     let busy = false;
+    let audioCtx = null;
+    let soundOn = sessionStorage.getItem("ha-sound") === "on";
+    let seenNotes = null;
+    let sirenTimer = 0;
+    let sirenIncidentId = null;
+    const blockedText = "Not sent again. An older incident is still open.";
+
+    function paintSound() {
+      soundBtn.setAttribute("aria-pressed", soundOn ? "true" : "false");
+      soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+    }
+
+    function ensureAudio() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(ctx, freq, start, duration, type, level) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(level, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + duration + 0.02);
+    }
+
+    function playSiren() {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(480, now);
+      osc.frequency.linearRampToValueAtTime(920, now + 0.4);
+      osc.frequency.linearRampToValueAtTime(480, now + 0.8);
+      osc.frequency.linearRampToValueAtTime(920, now + 1.2);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.07, now + 0.04);
+      gain.gain.setValueAtTime(0.07, now + 1.15);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 1.5);
+    }
+
+    function playWarn() {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      playTone(ctx, 880, now, 0.14, "square", 0.045);
+      playTone(ctx, 620, now + 0.2, 0.18, "square", 0.045);
+    }
+
+    function playNotice() {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      playTone(ctx, 523, ctx.currentTime, 0.12, "sine", 0.04);
+    }
+
+    function stopSiren() {
+      clearTimeout(sirenTimer);
+      sirenEl.hidden = true;
+      document.body.classList.remove("alarm");
+      sirenIncidentId = null;
+    }
+
+    function showSiren(kind, message, incidentId) {
+      sirenIncidentId = incidentId || null;
+      sirenEl.hidden = false;
+      sirenEl.className = `siren ${kind}`;
+      document.getElementById("siren-label").textContent = kind === "bad" ? "Siren" : kind === "warn" ? "Warning" : "Notice";
+      document.getElementById("siren-text").textContent = message;
+      document.body.classList.toggle("alarm", kind === "bad");
+      clearTimeout(sirenTimer);
+      sirenTimer = setTimeout(() => {
+        sirenEl.hidden = true;
+        document.body.classList.remove("alarm");
+      }, kind === "bad" ? 4000 : 2500);
+    }
+
+    function paintBlocked(id, blocked) {
+      const node = document.getElementById(id);
+      if (!node) return;
+      node.hidden = !blocked;
+      node.textContent = blocked ? blockedText : "";
+    }
+
+    function announce(notes) {
+      const fresh = Array.isArray(notes) ? notes : [];
+      const ids = fresh.map((note) => note.notification_id).filter(Boolean);
+      if (seenNotes) {
+        const newest = fresh.filter((note) => note.notification_id && !seenNotes.has(note.notification_id));
+        if (newest.length) {
+          const kind = newest.some((note) => cssClass(note.severity) === "bad")
+            ? "bad"
+            : newest.some((note) => cssClass(note.severity) === "warn")
+              ? "warn"
+              : "ok";
+          showSiren(kind, newest[0].message, newest[0].incident_id);
+          if (soundOn) {
+            if (kind === "bad") playSiren();
+            else if (kind === "warn") playWarn();
+            else playNotice();
+          }
+        }
+      }
+      seenNotes = new Set(ids);
+    }
 
     function cssClass(severity) {
       if (severity === "warning" || severity === "low_water") return "warn";
@@ -514,6 +649,7 @@
         actionEl.textContent = "Could not acknowledge that incident.";
         return;
       }
+      if (incidentId === sirenIncidentId) stopSiren();
       await refresh();
     }
 
@@ -584,6 +720,7 @@
         item.textContent = "No notifications yet.";
         notesEl.appendChild(item);
       }
+      announce(notifications);
 
       listEl.innerHTML = "";
       for (const incident of incidents.slice(0, 8)) {
@@ -664,7 +801,12 @@
       setText("home-lamp", modeLabel);
       setText("home-temp", climateCurrent.temp_c === null || climateCurrent.temp_c === undefined ? "--" : `${climateCurrent.temp_c}°`);
       setText("home-alerts", String(Array.isArray(notifications) ? notifications.length : 0));
-      statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt} · Telegram ${health.telegram}`;
+      paintBlocked("water-blocked", tank.blocked);
+      paintBlocked("focus-blocked", focus.blocked);
+      paintBlocked("climate-blocked", climate.blocked);
+      paintBlocked("alerts-blocked", tank.blocked || focus.blocked || climate.blocked);
+      const last = health.telegram_last || "none";
+      statusEl.textContent = `MongoDB ${health.mongo} · MQTT ${health.mqtt} · Telegram ${health.telegram} · last ${last}`;
     }
 
     function openView(name) {
@@ -678,6 +820,14 @@
 
     document.querySelectorAll("[data-open]").forEach((el) => {
       el.addEventListener("click", () => openView(el.dataset.open));
+    });
+
+    paintSound();
+    soundBtn.addEventListener("click", () => {
+      soundOn = !soundOn;
+      sessionStorage.setItem("ha-sound", soundOn ? "on" : "off");
+      paintSound();
+      if (soundOn) playNotice();
     });
 
     offBtn.addEventListener("click", () => sendCommand("off"));

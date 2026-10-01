@@ -136,3 +136,57 @@ async function evaluateWater(tankId) {
     await openIncident(rule, tank, latests);
   }
 }
+
+function blockFrom(rule, incident) {
+  return {
+    skipped_rule_id: rule.rule_id,
+    severity: rule.severity,
+    incident_id: incident.incident_id,
+  };
+}
+
+async function firstBlockedWater(tankId) {
+  const { DeviceLatest, Incident, Rule, Tank } = modelsFor("water_tank");
+  const tank = await Tank.findOne({ tank_id: tankId }).lean();
+  if (!tank) return null;
+  const latests = await DeviceLatest.find({ tank_id: tankId }).lean();
+  const rules = await Rule.find({ tank_id: tankId, enabled: true }).lean();
+  rules.sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity));
+  for (const rule of rules) {
+    if (rule.severity === "warning") {
+      const level = Number(latestField(latests, "tank_level", "level_pct"));
+      if (level >= (tank.thresholds?.overflow_pct ?? 98)) continue;
+    }
+    if (!(await matches(rule, latests, tank))) continue;
+    const existing = await Incident.findOne({
+      tank_id: tankId,
+      rule_id: rule.rule_id,
+      open: true,
+    }).lean();
+    if (existing) return blockFrom(rule, existing);
+  }
+  return null;
+}
+
+async function firstBlockedRoom(subsystem) {
+  const { DeviceLatest, Incident, Rule } = modelsFor(subsystem.type);
+  const latests = await DeviceLatest.find({ subsystem_id: subsystem.subsystem_id }).lean();
+  const rules = await Rule.find({ subsystem_id: subsystem.subsystem_id, enabled: true }).lean();
+  for (const rule of rules) {
+    if (!matchesRoom(rule, latests) || alreadySatisfied(rule, latests)) continue;
+    const existing = await Incident.findOne({
+      subsystem_id: subsystem.subsystem_id,
+      rule_id: rule.rule_id,
+      open: true,
+    }).lean();
+    if (existing) return blockFrom(rule, existing);
+  }
+  return null;
+}
+
+export async function blockedAlert(subsystemId) {
+  const route = await resolveSubsystem(subsystemId);
+  if (!route) return null;
+  if (route.type !== "water_tank") return firstBlockedRoom(route.subsystem);
+  return firstBlockedWater(subsystemId);
+}

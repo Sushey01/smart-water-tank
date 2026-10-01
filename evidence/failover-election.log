@@ -1,0 +1,6 @@
+T0_SHUTDOWN_PRIMARY_27018: 2026-09-30T17:21:39Z (epoch 1790788899)
+MongoNetworkError: connection 4 to 127.0.0.1:27018 closed
+(shutdown command returned, node going down)
+t+1s: 127.0.0.1:27017:PRIMARY 127.0.0.1:27018:(not reachable/healthy) 127.0.0.1:27019:SECONDARY
+NEW_PRIMARY_ELECTED_AT_t+1s elapsed=21s
+PRECISE: new primary 27017 electionTime t=1790788902 vs T0=1790788899 -> election ~3s after shutdown issued (the 21s wall-clock in the poll loop includes the shutdown handshake wait; first post-shutdown poll already showed 27017:PRIMARY).
