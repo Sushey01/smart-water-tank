@@ -43,6 +43,44 @@ npm run simulate -- cool
 
 `fault` ignores the off command. After 30 seconds the open cutoff incident is marked `confirmed_fault`.
 
+## Recreate the database from scratch
+
+Use this when the data is corrupted, you want a fresh demo, or someone else clones the repo and needs their own database. Wiping deletes all telemetry, incidents, and notifications, and anything under `evidence/` captured against the old data no longer matches.
+
+```bash
+# 1. Stop the API and any simulator first (Ctrl+C in those terminals),
+#    then stop the three database nodes:
+bash scripts/replica-down.sh
+
+# 2. Delete the data folders only (scripts/ stays untouched):
+rm -rf mongodb/node1/data mongodb/node2/data mongodb/node3/data
+
+# 3. Start the nodes again (the script recreates the folders itself):
+bash scripts/replica-up.sh
+
+# 4. Initiate the replica set exactly once, with the command the script prints:
+mongosh --port 27017 --eval 'rs.initiate({_id:"rs0", members:[{_id:0,host:"127.0.0.1:27017"},{_id:1,host:"127.0.0.1:27018"},{_id:2,host:"127.0.0.1:27019"}]})'
+
+# 5. Check one node is PRIMARY and two are SECONDARY before continuing:
+bash scripts/replica-status.sh
+
+# 6. Configure and seed (Telegram fields optional):
+cp .env.example .env
+npm install
+npm run seed
+
+# 7. Run:
+npm run dev
+```
+
+Notes:
+
+- Never run `rs.initiate` on a set that is already initialised. If the configuration is broken, wipe the data folders and start over instead.
+- `npm run seed` is safe to re-run. It upserts the tank, devices, and rules, so seeding twice changes nothing.
+- Ports 27017, 27018, 27019, 1883, and 3000 must be free before starting.
+- If seeding fails with an out-of-disk error on a nearly-full disk, free space first. MongoDB refuses index builds below its free-disk floor.
+- After a wipe, re-capture any evidence you still need. Old screenshots belong to the deleted data.
+
 ## API
 
 Base path `/api`.
